@@ -26,7 +26,7 @@ interface DashboardViewProps {
 }
 
 export const DashboardView = ({ role }: DashboardViewProps) => {
-  const { data, isLoading, setLocation } = useAirQuality({
+  const { data, isLoading, error, refresh, setLocation } = useAirQuality({
     enablePolling: true,
   });
 
@@ -58,6 +58,71 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
     setSearchQuery("");
     toast.success(`Location changed to ${name}`);
   };
+
+  // --- LOADING STATE (Skeletons) ---
+  if (isLoading && !data) {
+    return (
+      <div className="flex h-screen w-full flex-col overflow-hidden bg-[#F8FAFC] lg:flex-row">
+        {/* Left Panel Skeleton */}
+        <main className="flex-1 p-4 lg:p-10">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="space-y-4">
+              <div className="h-4 w-32 rounded bg-slate-200 animate-pulse" />
+              <div className="h-10 w-64 rounded bg-slate-200 animate-pulse" />
+            </div>
+            <div className="h-12 w-96 rounded-2xl bg-slate-200 animate-pulse hidden md:block" />
+          </div>
+          <div className="mb-8 h-80 w-full rounded-[2rem] bg-slate-200 animate-pulse" />
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div className="h-64 rounded-3xl bg-slate-200 animate-pulse" />
+            <div className="h-64 rounded-3xl bg-slate-200 animate-pulse" />
+          </div>
+        </main>
+        {/* Right Panel Skeleton */}
+        <aside className="hidden h-full w-[400px] border-l border-white/5 bg-[#0F172A] p-6 lg:block">
+          <div className="space-y-8">
+            <div className="flex justify-center pt-8">
+              <div className="h-24 w-24 rounded-3xl bg-white/10 animate-pulse" />
+            </div>
+            <div className="space-y-4">
+              <div className="mx-auto h-20 w-3/4 rounded bg-white/10 animate-pulse" />
+              <div className="mx-auto h-8 w-1/2 rounded bg-white/10 animate-pulse" />
+            </div>
+            <div className="h-32 w-full rounded-2xl bg-white/10 animate-pulse" />
+            <div className="space-y-4 pt-8">
+              <div className="h-12 w-full rounded bg-white/10 animate-pulse" />
+              <div className="h-12 w-full rounded bg-white/10 animate-pulse" />
+            </div>
+          </div>
+        </aside>
+      </div>
+    );
+  }
+
+  // --- ERROR STATE ---
+  if (error) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-[#F8FAFC]">
+        <div className="text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-100 text-red-500">
+              <AlertTriangle className="h-10 w-10" />
+            </div>
+          </div>
+          <h2 className="mb-2 text-3xl font-bold text-slate-900">
+            Connection Failed
+          </h2>
+          <p className="mb-8 max-w-md text-slate-500">{error}</p>
+          <button
+            onClick={refresh}
+            className="rounded-full bg-blue-600 px-8 py-3 font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-blue-700 active:scale-95"
+          >
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-[#F8FAFC] font-sans text-slate-800 lg:flex-row">
@@ -223,16 +288,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <PollutantGrid pollutants={data.pollutants} />
             <ForecastList forecast={data.forecast} />
-          </div>
-        )}
-
-        {/* Loading State */}
-        {isLoading && !data && (
-          <div className="flex items-center justify-center h-64">
-            <div className="flex flex-col items-center gap-4">
-              <div className="h-12 w-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-              <p className="text-slate-600">Loading air quality data...</p>
-            </div>
           </div>
         )}
       </main>
