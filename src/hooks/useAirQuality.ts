@@ -1,48 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { AQIData } from "../types";
+import { fetchAirQuality } from "../services/airQualityService";
 
-// Mock Data
-export const MOCK_DATA: AQIData = {
-  aqi: 87,
-  location: { name: "Lagos, NG", lat: 6.5244, lng: 3.3792 },
-  pollutants: {
-    pm25: 12.5,
-    pm10: 24.1,
-    o3: 45.2,
-    no2: 18.3,
-    so2: 5.4,
-    co: 0.8,
-  },
-  forecast: [
-    { time: "10AM", aqi: 82, icon: "cloud" },
-    { time: "12PM", aqi: 95, icon: "sun" },
-    { time: "2PM", aqi: 110, icon: "sun" },
-    { time: "4PM", aqi: 85, icon: "cloud" },
-  ],
-};
+// Default fallback (e.g., Lagos)
+const DEFAULT_LAT = 6.5244;
+const DEFAULT_LNG = 3.3792;
+const DEFAULT_NAME = "Lagos, NG";
 
-export function useAirQuality() {
-  const [data, setData] = useState<AQIData>(MOCK_DATA);
+interface UseAirQualityProps {
+  enablePolling?: boolean;
+}
+
+export function useAirQuality(
+  props: UseAirQualityProps = { enablePolling: false }
+) {
+  const [data, setData] = useState<AQIData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  const refresh = () => {
+  const [location, setLocationState] = useState({
+    lat: DEFAULT_LAT,
+    lng: DEFAULT_LNG,
+    name: DEFAULT_NAME,
+  });
+
+  const refresh = useCallback(async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setData((prev) => ({
-        ...prev,
-        aqi: Math.floor(Math.random() * (120 - 50) + 50),
-        pollutants: {
-          pm25: +(Math.random() * 20).toFixed(1),
-          pm10: +(Math.random() * 30).toFixed(1),
-          o3: +(Math.random() * 50).toFixed(1),
-          no2: +(Math.random() * 20).toFixed(1),
-          so2: +(Math.random() * 10).toFixed(1),
-          co: +(Math.random() * 2).toFixed(1),
-        },
-      }));
+    setError(null);
+    try {
+      const result = await fetchAirQuality(
+        location.lat,
+        location.lng,
+        location.name || "Unknown"
+      );
+      setData(result);
+      setLastUpdated(new Date());
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load air quality data.");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
+  }, [location]);
+
+  const setLocation = (lat: number, lng: number, name?: string) => {
+    setLocationState({ lat, lng, name: name || "Selected Location" });
   };
 
-  return { data, isLoading, refresh };
+  // Initial load and polling
+  useEffect(() => {
+    refresh();
+
+    let intervalId: NodeJS.Timeout;
+    if (props.enablePolling) {
+      intervalId = setInterval(refresh, 300000); // Poll every 5 minutes
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [refresh, props.enablePolling]);
+
+  return { data, isLoading, error, refresh, setLocation, lastUpdated };
 }

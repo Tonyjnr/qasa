@@ -1,11 +1,11 @@
-import { LogOut, Bell, User, Wind, RefreshCw, Info } from "lucide-react";
+import { Wind, RefreshCw, Info } from "lucide-react";
 import type { AQIData } from "../../types";
 
 interface SidebarProps {
   data: AQIData;
   isLoading: boolean;
-  onLogout: () => void;
   refresh: () => void;
+  onLocationSelect?: (lat: number, lng: number, name: string) => void;
 }
 
 const getAQIStatus = (aqi: number) => {
@@ -48,8 +48,8 @@ const getAQIStatus = (aqi: number) => {
 export const Sidebar = ({
   data,
   isLoading,
-  onLogout,
   refresh,
+  onLocationSelect,
 }: SidebarProps) => {
   const status = getAQIStatus(data.aqi);
 
@@ -58,28 +58,6 @@ export const Sidebar = ({
       {/* Decorative Blobs for Sidebar */}
       <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-600/20 blur-[60px]" />
       <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-teal-500/10 blur-[60px]" />
-
-      {/* Top Actions */}
-      <div className="relative z-10 flex items-center justify-between">
-        <button
-          onClick={onLogout}
-          className="group flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/10 hover:text-white"
-        >
-          <LogOut className="h-3 w-3 text-slate-400 group-hover:text-white" />{" "}
-          Exit
-        </button>
-        <div className="flex items-center gap-4">
-          <div className="relative cursor-pointer">
-            <div className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#0F172A]" />
-            <Bell className="h-5 w-5 text-slate-300 hover:text-white" />
-          </div>
-          <div className="h-10 w-10 overflow-hidden rounded-full bg-gradient-to-tr from-blue-500 to-green-500 p-0.5">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-[#0F172A]">
-              <User className="h-5 w-5 text-white" />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Big AQI Display */}
       <div className="relative z-10 mt-12 flex flex-1 flex-col items-center text-center">
@@ -142,20 +120,57 @@ export const Sidebar = ({
           Monitoring Stations
         </h4>
         <div className="space-y-3">
-          <div className="flex cursor-pointer items-center gap-4 rounded-xl border-l-2 border-green-500 bg-white/5 p-3 transition hover:bg-white/10">
-            <div className="flex-1">
-              <p className="text-sm font-bold text-white">Lagos, NG</p>
-              <p className="text-xs text-slate-400">Main Station</p>
-            </div>
-            <span className="text-sm font-bold text-green-400">87</span>
-          </div>
-          <div className="flex cursor-not-allowed items-center gap-4 rounded-xl border-l-2 border-transparent p-3 opacity-50 hover:bg-white/5">
-            <div className="flex-1">
-              <p className="text-sm font-bold text-white">London, UK</p>
-              <p className="text-xs text-slate-400">Offline</p>
-            </div>
-            <span className="text-sm font-bold text-slate-500">--</span>
-          </div>
+          {[
+            {
+              name: "Lagos, NG",
+              lat: 6.5244,
+              lng: 3.3792,
+              aqi: 87,
+              status: "Main Station",
+            },
+            {
+              name: "London, UK",
+              lat: 51.5074,
+              lng: -0.1278,
+              aqi: 45,
+              status: "Active",
+            },
+            {
+              name: "New York, US",
+              lat: 40.7128,
+              lng: -74.006,
+              aqi: 32,
+              status: "Active",
+            },
+            {
+              name: "Tokyo, JP",
+              lat: 35.6762,
+              lng: 139.6503,
+              aqi: 65,
+              status: "Active",
+            },
+          ].map((station, idx) => (
+            <button
+              key={idx}
+              onClick={() =>
+                onLocationSelect &&
+                onLocationSelect(station.lat, station.lng, station.name)
+              }
+              className="flex w-full cursor-pointer items-center gap-4 rounded-xl border-l-2 border-green-500 bg-white/5 p-3 transition hover:bg-white/10 text-left"
+            >
+              <div className="flex-1">
+                <p className="text-sm font-bold text-white">{station.name}</p>
+                <p className="text-xs text-slate-400">{station.status}</p>
+              </div>
+              <span
+                className={`text-sm font-bold ${
+                  station.aqi > 50 ? "text-yellow-400" : "text-green-400"
+                }`}
+              >
+                {station.aqi}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
     </aside>

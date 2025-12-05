@@ -1,29 +1,59 @@
-import { Search, Map as MapIcon, List, Navigation } from "lucide-react";
+import { Search, Map as MapIcon, List, Bell } from "lucide-react";
 import { useAirQuality } from "../hooks/useAirQuality";
+import { UserButton } from "@clerk/clerk-react";
 import type { UserRole } from "../types";
 import { PollutantGrid } from "../components/dashboard/PollutantGrid";
 import { ForecastList } from "../components/dashboard/ForecastList";
 import { Sidebar } from "../components/layout/Sidebar";
-
-const getAQIStatus = (aqi: number) => {
-  if (aqi <= 50) return { bg: "bg-green-500" };
-  if (aqi <= 100) return { bg: "bg-yellow-400" };
-  if (aqi <= 150) return { bg: "bg-orange-500" };
-  if (aqi <= 300) return { bg: "bg-purple-500" };
-  return { bg: "bg-red-900" };
-};
+import { InteractiveMap } from "../components/dashboard/InteractiveMap";
+import { ListView } from "../components/dashboard/ListView";
+import { useState } from "react";
+import { searchLocation } from "../services/api";
+import { Toaster, toast } from "sonner";
 
 interface DashboardViewProps {
   role: UserRole;
-  onLogout: () => void;
+  onLogout: () => void; // Keep for interface compatibility if needed, though replaced by UserButton
 }
 
-export const DashboardView = ({ role, onLogout }: DashboardViewProps) => {
-  const { data, isLoading, refresh } = useAirQuality();
-  const status = getAQIStatus(data.aqi);
+export const DashboardView = ({ role }: DashboardViewProps) => {
+  const { data, isLoading, refresh, setLocation } = useAirQuality({
+    enablePolling: true,
+  });
+
+  const [searchQuery, setSearchQuery] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [viewMode, setViewMode] = useState<"map" | "list">("map");
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const results = await searchLocation(searchQuery);
+      setSearchResults(results);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to search location");
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleLocationSelect = (lat: number, lng: number, name: string) => {
+    setLocation(lat, lng);
+    setShowSearchResults(false);
+    setSearchQuery("");
+    toast.success(`Location changed to ${name}`);
+  };
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-[#F8FAFC] font-sans text-slate-800 lg:flex-row">
+      <Toaster position="top-center" />
       {/* --- LEFT PANEL: Content Area (Light) --- */}
       <main className="flex-1 overflow-y-auto p-4 lg:p-10">
         {/* Header */}
@@ -39,82 +69,132 @@ export const DashboardView = ({ role, onLogout }: DashboardViewProps) => {
               </span>
             </div>
             <h1 className="text-3xl font-bold text-slate-900">
-              Air Surveillance
+              Air Quality Monitor
             </h1>
           </div>
 
           <div className="flex w-full items-center gap-3 md:w-auto">
-            <div className="relative flex-1 md:w-64">
+            <div className="relative flex-1 md:w-96">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search city..."
-                className="w-full rounded-2xl border-none bg-white py-3 pl-10 pr-4 shadow-sm ring-1 ring-slate-200 transition-shadow focus:ring-2 focus:ring-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className={`w-full rounded-2xl border-none bg-white py-3 pl-10 pr-4 shadow-sm ring-1 ring-slate-200 transition-shadow focus:ring-2 focus:ring-blue-500 ${
+                  isSearching ? "opacity-50" : ""
+                }`}
+                disabled={isSearching}
               />
+              {showSearchResults && searchResults.length > 0 && (
+                <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-lg border border-slate-200 max-h-64 overflow-y-auto z-50">
+                  {searchResults.map((result, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() =>
+                        handleLocationSelect(
+                          result.lat,
+                          result.lng,
+                          result.name
+                        )
+                      }
+                      className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0"
+                    >
+                      <div className="font-medium text-slate-900">
+                        {result.name}
+                      </div>
+                      <div className="text-sm text-slate-500">
+                        {result.state ? `${result.state}, ` : ""}
+                        {result.country}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <button className="relative rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+                <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                <Bell className="h-5 w-5" />
+              </button>
+              <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </header>
 
-        {/* Map Section */}
+        {/* Map/List Section */}
         <section className="mb-8">
           <div className="mb-4 flex items-end justify-between">
-            <h2 className="text-xl font-bold text-slate-800">Live Map</h2>
+            <h2 className="text-xl font-bold text-slate-800">Live Overview</h2>
             <div className="flex rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-100">
-              <button className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-1.5 text-xs font-medium text-white shadow-md">
+              <button
+                onClick={() => setViewMode("map")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium transition-all ${
+                  viewMode === "map"
+                    ? "bg-slate-900 text-white shadow-md"
+                    : "text-slate-500 hover:bg-slate-50"
+                }`}
+              >
                 <MapIcon className="h-3 w-3" /> Map
               </button>
-              <button className="flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium text-slate-500 hover:bg-slate-50">
+              <button
+                onClick={() => setViewMode("list")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium transition-all ${
+                  viewMode === "list"
+                    ? "bg-slate-900 text-white shadow-md"
+                    : "text-slate-500 hover:bg-slate-50"
+                }`}
+              >
                 <List className="h-3 w-3" /> List
               </button>
             </div>
           </div>
 
-          {/* Map Visualization Placeholder */}
-          <div className="relative h-64 w-full overflow-hidden rounded-[2rem] bg-slate-200 shadow-inner md:h-80">
-            {/* Simulating Map UI */}
-            <div className="absolute inset-0 bg-[url('https://cartodb-basemaps-a.global.ssl.fastly.net/light_all/12/2355/1990.png')] bg-cover opacity-60 mix-blend-multiply grayscale-[0.2]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-white/50 to-transparent" />
-
-            {/* Map Markers */}
-            <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-1">
-              <div
-                className={`flex h-12 w-12 items-center justify-center rounded-full border-4 border-white ${status.bg} shadow-xl`}
-              >
-                <span className="text-sm font-bold text-white">{data.aqi}</span>
-              </div>
-              <div className="rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-slate-800 shadow-sm backdrop-blur">
-                {data.location.name}
-              </div>
-            </div>
-
-            {/* Other markers */}
-            <div className="absolute left-1/4 top-1/3 h-3 w-3 rounded-full bg-green-500 ring-4 ring-white/50" />
-            <div className="absolute right-1/3 bottom-1/3 h-3 w-3 rounded-full bg-yellow-400 ring-4 ring-white/50" />
-
-            <div className="absolute bottom-4 right-4 flex flex-col gap-2">
-              <button className="rounded-lg bg-white p-2 text-slate-600 shadow-lg hover:bg-slate-50">
-                <Navigation className="h-4 w-4" />
-              </button>
-            </div>
+          <div className="relative h-80 w-full overflow-hidden rounded-[2rem] bg-slate-200 shadow-lg">
+            {viewMode === "map" ? (
+              <InteractiveMap
+                data={data}
+                onLocationChange={(lat, lng) => {
+                  setLocation(lat, lng);
+                  toast.info("Fetching AQI for new location...");
+                }}
+              />
+            ) : (
+              <ListView data={data} />
+            )}
           </div>
         </section>
 
         {/* Pollutants & Forecast */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-          {/* Pollutant Breakdown */}
-          <PollutantGrid pollutants={data.pollutants} />
-          {/* Hourly Forecast */}
-          <ForecastList forecast={data.forecast} />
-        </div>
+        {data && (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <PollutantGrid pollutants={data.pollutants} />
+            <ForecastList forecast={data.forecast} />
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && !data && (
+          <div className="flex items-center justify-center h-64">
+            <div className="flex flex-col items-center gap-4">
+              <div className="h-12 w-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+              <p className="text-slate-600">Loading air quality data...</p>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* --- RIGHT PANEL: Summary Area (Dark) --- */}
-      <Sidebar
-        data={data}
-        isLoading={isLoading}
-        refresh={refresh}
-        onLogout={onLogout}
-      />
+      {data && (
+        <Sidebar
+          data={data}
+          isLoading={isLoading}
+          refresh={refresh}
+          onLocationSelect={handleLocationSelect}
+        />
+      )}
     </div>
   );
 };

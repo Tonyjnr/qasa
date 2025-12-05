@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Leaf,
 } from "lucide-react";
+import { SignInButton } from "@clerk/clerk-react";
 import type { UserRole } from "../types";
 import { LiveTicker } from "../components/layout/LiveTicker";
 
@@ -24,10 +25,10 @@ const CLEANEST_CITIES = [
 ];
 
 interface AuthViewProps {
-  onLogin: (role: UserRole) => void;
+  onRoleSelect: (role: UserRole) => void;
 }
 
-export const AuthView = ({ onLogin }: AuthViewProps) => {
+export const AuthView = ({ onRoleSelect }: AuthViewProps) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>("resident");
 
   return (
@@ -105,17 +106,19 @@ export const AuthView = ({ onLogin }: AuthViewProps) => {
             </div>
 
             <div className="mt-2 px-1">
-              <button
-                onClick={() => onLogin(selectedRole)}
-                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#4285F4] py-4 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-500 hover:shadow-blue-500/40"
-              >
-                <span>
-                  {selectedRole === "resident"
-                    ? "Start Monitoring"
-                    : "Access Research Tools"}
-                </span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </button>
+              <SignInButton mode="modal">
+                <button
+                  onClick={() => onRoleSelect(selectedRole)}
+                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#4285F4] py-4 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-500 hover:shadow-blue-500/40"
+                >
+                  <span>
+                    {selectedRole === "resident"
+                      ? "Start Monitoring"
+                      : "Access Research Tools"}
+                  </span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </button>
+              </SignInButton>
             </div>
 
             <div className="mt-3 px-2 text-center">
