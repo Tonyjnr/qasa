@@ -1,73 +1,60 @@
-# React + TypeScript + Vite
+# QASA - Air Surveillance & Health
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+QASA is a real-time air quality monitoring application designed to empower residents and professionals with accurate, actionable environmental data.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Dual-Persona Interface**: Seamlessly switch between "Resident" (health-focused) and "Professional" (data-focused) views.
+- **Real-Time Dashboard**:
+  - **Live Ticker**: Infinite scrolling ticker showing global AQI updates.
+  - **Clean Split Layout**: Intuitive separation between detailed content and summary metrics.
+  - **Pollutant Breakdown**: Granular data on PM2.5, PM10, NO₂, O₃, CO, and SO₂.
+  - **Health Advisories**: Context-aware health recommendations based on current air quality.
+  - **7-Day Forecast**: Predictive modeling for planning outdoor activities.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: [React 19](https://react.dev/) + [Vite](https://vitejs.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
 
-## Expanding the ESLint configuration
+## Project Structure
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+The project follows a scalable, component-based architecture:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+├── components/
+│   ├── layout/       # Global layout components (Sidebar, LiveTicker)
+│   ├── dashboard/    # Dashboard-specific widgets (PollutantGrid, ForecastList)
+│   └── shared/       # Reusable UI elements
+├── pages/            # Main view controllers (AuthView, DashboardView)
+├── hooks/            # Custom React hooks (useAirQuality)
+├── types/            # TypeScript interfaces and type definitions
+├── services/         # API integration services
+└── App.tsx           # Main application entry and routing
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Quick Start
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1.  **Install dependencies**:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+    ```bash
+    npm install
+    ```
+
+2.  **Start the development server**:
+
+    ```bash
+    npm run dev
+    ```
+
+3.  **Build for production**:
+    ```bash
+    npm run build
+    ```
+
+## License
+
+© 2024 QASA Project. All rights reserved.
