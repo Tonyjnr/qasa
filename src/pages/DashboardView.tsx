@@ -26,7 +26,7 @@ interface DashboardViewProps {
 }
 
 export const DashboardView = ({ role }: DashboardViewProps) => {
-  const { data, isLoading, refresh, setLocation } = useAirQuality({
+  const { data, isLoading, setLocation } = useAirQuality({
     enablePolling: true,
   });
 
@@ -208,7 +208,7 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
                   </button>
                 </DialogTrigger>
                 {/* DialogContent hosting ListView */}
-                <DialogContent className="max-w-[90vw] h-[90vh] p-0 overflow-hidden bg-[#0F172A] border-slate-800 shadow-2xl rounded-3xl">
+                <DialogContent className="max-w-[68vw] h-[90vh] p-0 overflow-hidden bg-[#0F172A] border-slate-800 shadow-2xl rounded-3xl">
                   <div className="h-full w-full overflow-hidden">
                     <ListView data={data} />
                   </div>
@@ -242,7 +242,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
         <Sidebar
           data={data}
           isLoading={isLoading}
-          refresh={refresh}
           onLocationSelect={handleLocationSelect}
         />
       )}

@@ -1,7 +1,4 @@
 import {
-  Wind,
-  RefreshCw,
-  Info,
   ShieldCheck,
   ShieldAlert,
   Skull,
@@ -9,14 +6,11 @@ import {
   MapPin,
 } from "lucide-react";
 import type { AQIData } from "../../types";
-import { Card, CardContent } from "../ui/card";
-import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 
 interface SidebarProps {
   data: AQIData;
   isLoading: boolean;
-  refresh: () => void;
   onLocationSelect?: (lat: number, lng: number, name: string) => void;
 }
 
@@ -70,7 +64,6 @@ const getAQIStatus = (aqi: number) => {
 export const Sidebar = ({
   data,
   isLoading,
-  refresh,
   onLocationSelect,
 }: SidebarProps) => {
   const status = getAQIStatus(data.aqi);
@@ -82,70 +75,54 @@ export const Sidebar = ({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-900/0 to-slate-900/0" />
 
       {/* Main Content Info */}
-      <div className="relative z-10 flex flex-1 flex-col items-center pt-8 text-center">
-        <div
-          className={cn(
-            "mb-8 flex h-24 w-24 items-center justify-center rounded-3xl shadow-[0_0_40px_-5px_var(--tw-shadow-color)] ring-1 ring-white/10 backdrop-blur-xl",
-            status.bg,
-            status.color.replace("text-", "shadow-") // Dynamic shadow color
-          )}
-        >
-          <StatusIcon className={cn("h-12 w-12", status.color)} />
+      <div className="relative z-10 flex flex-1 flex-col pt-12 px-2 text-left">
+        <div>
+          <h2 className="text-4xl font-bold tracking-tight text-white">
+            {data.location.name}
+          </h2>
+          <p className="mt-2 text-lg text-slate-400">
+            Today,{" "}
+            {new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
         </div>
 
-        <div className="mb-2 flex items-center gap-2 uppercase tracking-widest text-slate-400">
-          <Wind className="h-3 w-3" />
-          <span className="text-[10px] font-bold">Current Average</span>
-        </div>
+        <div className="mt-16">
+          <div className="flex items-baseline gap-1">
+            <span className="text-8xl font-bold tracking-tighter text-white">
+              {isLoading ? "--" : data.aqi}
+            </span>
+            <span className={cn("text-3xl font-bold", status.color)}>AQI</span>
+          </div>
 
-        <h2 className="text-8xl font-black tracking-tighter text-white">
-          {isLoading ? (
-            <span className="animate-pulse opacity-50">--</span>
-          ) : (
-            data.aqi
-          )}
-          <span className="absolute -top-4 text-4xl text-slate-600">°</span>
-        </h2>
-
-        <h3 className="mt-4 text-2xl font-light text-slate-200">
-          {data.location.name}
-        </h3>
-
-        <div className="mt-4 flex items-center gap-2 rounded-full border border-white/5 bg-white/5 px-3 py-1 text-[10px] text-slate-400">
-          <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
-          Updated just now
-        </div>
-
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={refresh}
-          disabled={isLoading}
-          className="mt-6 border-white/10 bg-transparent text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
-        >
-          <RefreshCw
-            className={cn("mr-2 h-3 w-3", isLoading && "animate-spin")}
-          />
-          Refresh Data
-        </Button>
-
-        {/* Health Advisory Card */}
-        <Card className="mt-8 w-full border-white/10 bg-white/5 backdrop-blur-md">
-          <CardContent className="p-4 text-left">
-            <div className="mb-2 flex items-center gap-2">
-              <Info className="h-4 w-4 text-blue-400" />
-              <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                Health Status
-              </h4>
-            </div>
-            <p className="text-sm leading-relaxed text-slate-300">
-              <span className={cn("font-bold", status.color)}>
-                {status.label}:{" "}
-              </span>
-              {status.desc}
+          <div className="mt-6 flex items-center gap-3">
+            <div
+              className={cn(
+                "h-3 w-3 rounded-full animate-pulse",
+                status.color.replace("text-", "bg-")
+              )}
+            />
+            <p className="text-lg font-medium text-slate-300">
+              Primary Pollutant:{" "}
+              <span className="text-white">PM2.5 ({data.pollutants.pm25})</span>
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Health Advisory - Kept as purely informational below the main rigid structure */}
+        <div className="mt-12 rounded-2xl border border-white/5 bg-white/5 p-6 backdrop-blur-md">
+          <div className="mb-3 flex items-center gap-3">
+            <StatusIcon className={cn("h-6 w-6", status.color)} />
+            <span className={cn("text-lg font-bold", status.color)}>
+              {status.label}
+            </span>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-400">
+            {status.desc}
+          </p>
+        </div>
       </div>
 
       {/* Monitoring Stations */}
