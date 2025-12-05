@@ -22,6 +22,13 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 import { ThemeToggle } from "../components/ui/theme-toggle";
+import { HistoricalChart } from "../components/dashboard/HistoricalChart";
+import {
+  HistoricalDataService,
+  type DailySummary,
+  type TrendAnalysis,
+} from "../services/historicalData";
+import { useEffect } from "react";
 
 interface DashboardViewProps {
   role: UserRole;
@@ -38,6 +45,26 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+
+  const [historicalData, setHistoricalData] = useState<DailySummary[] | null>(
+    null
+  );
+  const [trendAnalysis, setTrendAnalysis] = useState<
+    TrendAnalysis["trend"] | undefined
+  >(undefined);
+
+  useEffect(() => {
+    async function fetchHistory() {
+      // Mock location ID for now
+      const analysis = await HistoricalDataService.getTrendAnalysis(
+        "current-location",
+        30
+      );
+      setHistoricalData(analysis.summaries);
+      setTrendAnalysis(analysis.trend);
+    }
+    fetchHistory();
+  }, [data?.location?.name]); // Re-fetch when location changes
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -298,6 +325,16 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
             </div>
           </div>
         </section>
+
+        {/* Historical Trends */}
+        {historicalData && (
+          <section className="mb-8">
+            <h2 className="mb-4 text-xl font-bold text-slate-800">
+              Historical Analysis
+            </h2>
+            <HistoricalChart data={historicalData} trend={trendAnalysis} />
+          </section>
+        )}
 
         {/* Health Insights Section */}
         {data && (
