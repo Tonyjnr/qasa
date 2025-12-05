@@ -1,4 +1,4 @@
-import { Search, Map as MapIcon, List, Bell } from "lucide-react";
+import { Search, Bell, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useAirQuality } from "../hooks/useAirQuality";
 import { UserButton } from "@clerk/clerk-react";
 import type { UserRole } from "../types";
@@ -10,6 +10,15 @@ import { ListView } from "../components/dashboard/ListView";
 import { useState } from "react";
 import { searchLocation } from "../services/api";
 import { Toaster, toast } from "sonner";
+import { Dialog, DialogContent, DialogTrigger } from "../components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
 
 interface DashboardViewProps {
   role: UserRole;
@@ -26,7 +35,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [viewMode, setViewMode] = useState<"map" | "list">("map");
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -88,7 +96,7 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
                 disabled={isSearching}
               />
               {showSearchResults && searchResults.length > 0 && (
-                <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-lg border border-slate-200 max-h-64 overflow-y-auto z-50">
+                <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
                   {searchResults.map((result, idx) => (
                     <button
                       key={idx}
@@ -99,7 +107,7 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
                           result.name
                         )
                       }
-                      className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0"
+                      className="w-full border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 last:border-b-0"
                     >
                       <div className="font-medium text-slate-900">
                         {result.name}
@@ -115,55 +123,98 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
             </div>
 
             <div className="flex items-center gap-4">
-              <button className="relative rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
-                <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-                <Bell className="h-5 w-5" />
-              </button>
+              {/* Notifications Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="relative rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors focus:outline-none">
+                    <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
+                    <Bell className="h-5 w-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-80 bg-white p-0 shadow-xl border border-slate-100"
+                >
+                  <DropdownMenuLabel className="p-4 text-sm font-bold text-slate-900">
+                    Notifications
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="p-4 cursor-pointer hover:bg-slate-50">
+                    <div className="flex gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-500">
+                        <AlertTriangle className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          High Pollution Alert
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Air quality in Lagos is deteriorating.
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="p-4 cursor-pointer hover:bg-slate-50">
+                    <div className="flex gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-500">
+                        <CheckCircle2 className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-900">
+                          Weekly Report Ready
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          Your exposure summary is available.
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <UserButton afterSignOutUrl="/" />
             </div>
           </div>
         </header>
 
-        {/* Map/List Section */}
-        <section className="mb-8">
+        {/* Map Section */}
+        <section className="mb-8 relative z-0">
           <div className="mb-4 flex items-end justify-between">
             <h2 className="text-xl font-bold text-slate-800">Live Overview</h2>
-            <div className="flex rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-100">
-              <button
-                onClick={() => setViewMode("map")}
-                className={`flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium transition-all ${
-                  viewMode === "map"
-                    ? "bg-slate-900 text-white shadow-md"
-                    : "text-slate-500 hover:bg-slate-50"
-                }`}
-              >
-                <MapIcon className="h-3 w-3" /> Map
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={`flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium transition-all ${
-                  viewMode === "list"
-                    ? "bg-slate-900 text-white shadow-md"
-                    : "text-slate-500 hover:bg-slate-50"
-                }`}
-              >
-                <List className="h-3 w-3" /> List
-              </button>
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />{" "}
+              Live data from network
             </div>
           </div>
 
-          <div className="relative h-80 w-full overflow-hidden rounded-[2rem] bg-slate-200 shadow-lg">
-            {viewMode === "map" ? (
-              <InteractiveMap
-                data={data}
-                onLocationChange={(lat, lng) => {
-                  setLocation(lat, lng);
-                  toast.info("Fetching AQI for new location...");
-                }}
-              />
-            ) : (
-              <ListView data={data} />
-            )}
+          <div className="relative h-80 w-full overflow-hidden rounded-[2rem] bg-slate-200 shadow-xl ring-1 ring-slate-900/5 transition-all">
+            <InteractiveMap
+              data={data}
+              onLocationChange={(lat, lng) => {
+                setLocation(lat, lng);
+                toast.info("Fetching AQI for new location...");
+              }}
+            />
+
+            {/* Help / Detailed View Trigger */}
+            <div className="absolute right-4 top-4 z-[500]">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-900 shadow-lg transition-transform hover:scale-110 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title="Detailed View"
+                  >
+                    <span className="text-lg font-bold">?</span>
+                  </button>
+                </DialogTrigger>
+                {/* DialogContent hosting ListView */}
+                <DialogContent className="max-w-[90vw] h-[90vh] p-0 overflow-hidden bg-[#0F172A] border-slate-800 shadow-2xl rounded-3xl">
+                  <div className="h-full w-full overflow-hidden">
+                    <ListView data={data} />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </section>
 
