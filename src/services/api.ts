@@ -2,7 +2,7 @@
 import axios from "axios";
 
 export const openWeatherApi = axios.create({
-  baseURL: "http://api.openweathermap.org/data/2.5",
+  baseURL: "https://api.openweathermap.org/data/2.5",
   params: {
     appid: import.meta.env.VITE_OPENWEATHER_API_KEY,
   },
@@ -16,7 +16,7 @@ export const waqiApi = axios.create({
 });
 
 export const geoApi = axios.create({
-  baseURL: "http://api.openweathermap.org/geo/1.0",
+  baseURL: "https://api.openweathermap.org/geo/1.0",
   params: {
     appid: import.meta.env.VITE_OPENWEATHER_API_KEY,
   },

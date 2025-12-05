@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 export type ViewState = "AUTH" | "DASHBOARD";
 export type UserRole = "resident" | "professional";
 
@@ -17,6 +18,7 @@ export interface Pollutants {
 }
 
 export interface ForecastItem {
+  [x: string]: ReactNode;
   time: string;
   aqi: number;
   icon: string;

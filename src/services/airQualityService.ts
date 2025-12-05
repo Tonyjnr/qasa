@@ -19,6 +19,9 @@ export const fetchAirQuality = async (
   lng: number,
   locationName: string
 ): Promise<AQIData> => {
+  console.log(
+    `[fetchAirQuality] Fetching for: lat=${lat}, lng=${lng}, name=${locationName}`
+  );
   try {
     let resolvedName = locationName;
 
@@ -66,13 +69,22 @@ export const fetchAirQuality = async (
         co: current.components.co,
       },
       forecast: forecastList.map((item: any) => ({
-        time: new Date(item.dt * 1000).getHours() + ":00",
+        time: new Date(item.dt * 1000).toISOString(),
         aqi: mapOWMAqiToScale(item.main.aqi),
         icon: item.main.aqi <= 2 ? "cloud" : "sun", // Simple icon logic
       })) as ForecastItem[],
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to fetch air quality data:", error);
+    if (error.response) {
+      console.error("API Response Error:", {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data,
+        url: error.config?.url,
+        params: error.config?.params,
+      });
+    }
     throw error;
   }
 };

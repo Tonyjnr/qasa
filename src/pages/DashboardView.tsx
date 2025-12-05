@@ -7,6 +7,8 @@ import { ForecastList } from "../components/dashboard/ForecastList";
 import { Sidebar } from "../components/layout/Sidebar";
 import { InteractiveMap } from "../components/dashboard/InteractiveMap";
 import { ListView } from "../components/dashboard/ListView";
+import { CigaretteWidget } from "../components/dashboard/CigaretteWidget";
+import { ExerciseAdvisor } from "../components/dashboard/ExerciseAdvisor";
 import { useState } from "react";
 import { searchLocation } from "../services/api";
 import { Toaster, toast } from "sonner";
@@ -19,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
+import { ThemeToggle } from "../components/ui/theme-toggle";
 
 interface DashboardViewProps {
   role: UserRole;
@@ -114,7 +117,7 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
           </h2>
           <p className="mb-8 max-w-md text-slate-500">{error}</p>
           <button
-            onClick={refresh}
+            onClick={() => refresh()}
             className="rounded-full bg-blue-600 px-8 py-3 font-bold text-white shadow-lg transition-transform hover:scale-105 hover:bg-blue-700 active:scale-95"
           >
             Retry Connection
@@ -153,15 +156,27 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
                 type="text"
                 placeholder="Search city..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSearchQuery(val);
+                  if (val.length >= 3) {
+                    // Debounce could be added but for now direct call
+                    searchLocation(val).then((results) => {
+                      setSearchResults(results.slice(0, 5)); // Limit to 5
+                      setShowSearchResults(true);
+                    });
+                  } else {
+                    setShowSearchResults(false);
+                  }
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className={`w-full rounded-2xl border-none bg-white py-3 pl-10 pr-4 shadow-sm ring-1 ring-slate-200 transition-shadow focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full rounded-full border-none bg-white py-3 pl-10 pr-4 shadow-sm ring-1 ring-slate-200 transition-shadow focus:ring-2 focus:ring-blue-500 ${
                   isSearching ? "opacity-50" : ""
                 }`}
                 disabled={isSearching}
               />
               {showSearchResults && searchResults.length > 0 && (
-                <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+                <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-lg">
                   {searchResults.map((result, idx) => (
                     <button
                       key={idx}
@@ -186,8 +201,9 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
                 </div>
               )}
             </div>
-
             <div className="flex items-center gap-4">
+              <ThemeToggle />
+
               {/* Notifications Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -252,7 +268,7 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
             </div>
           </div>
 
-          <div className="relative h-80 w-full overflow-hidden rounded-[2rem] bg-slate-200 shadow-xl ring-1 ring-slate-900/5 transition-all">
+          <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-slate-200 shadow-xl ring-1 ring-slate-900/5 transition-all">
             <InteractiveMap
               data={data}
               onLocationChange={(lat, lng) => {
@@ -282,6 +298,14 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
             </div>
           </div>
         </section>
+
+        {/* Health Insights Section */}
+        {data && (
+          <section className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <CigaretteWidget pm25={data.pollutants.pm25} />
+            <ExerciseAdvisor currentAQI={data.aqi} forecast={data.forecast} />
+          </section>
+        )}
 
         {/* Pollutants & Forecast */}
         {data && (
