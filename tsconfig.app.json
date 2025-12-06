@@ -22,7 +22,13 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "baseUrl": ".",
+    "paths": {
+      "@neondatabase/serverless": [
+        "./node_modules/@neondatabase/serverless/index.d.ts"
+      ]
+    }
   },
   "include": ["src"]
 }

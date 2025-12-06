@@ -7,7 +7,7 @@ import {
   AlertTriangle,
   Leaf,
 } from "lucide-react";
-import { SignInButton } from "@clerk/clerk-react";
+
 import type { UserRole } from "../types";
 import { LiveTicker } from "../components/layout/LiveTicker";
 
@@ -26,9 +26,10 @@ const CLEANEST_CITIES = [
 
 interface AuthViewProps {
   onRoleSelect: (role: UserRole) => void;
+  onGetStarted: () => void;
 }
 
-export const AuthView = ({ onRoleSelect }: AuthViewProps) => {
+export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>("resident");
 
   return (
@@ -106,19 +107,20 @@ export const AuthView = ({ onRoleSelect }: AuthViewProps) => {
             </div>
 
             <div className="mt-2 px-1">
-              <SignInButton mode="modal">
-                <button
-                  onClick={() => onRoleSelect(selectedRole)}
-                  className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#4285F4] py-4 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-500 hover:shadow-blue-500/40"
-                >
-                  <span>
-                    {selectedRole === "resident"
-                      ? "Start Monitoring"
-                      : "Access Research Tools"}
-                  </span>
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </button>
-              </SignInButton>
+              <button
+                onClick={() => {
+                  onRoleSelect(selectedRole);
+                  onGetStarted();
+                }}
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#4285F4] py-4 font-semibold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-blue-500 hover:shadow-blue-500/40"
+              >
+                <span>
+                  {selectedRole === "resident"
+                    ? "Start Monitoring"
+                    : "Access Research Tools"}
+                </span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </button>
             </div>
 
             <div className="mt-3 px-2 text-center">

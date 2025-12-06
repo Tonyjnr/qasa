@@ -1,15 +1,43 @@
-import { pgTable, text, timestamp, boolean, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  boolean,
+  jsonb,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-  id: text("id").primaryKey(), // clerk_user_id
-  email: text("email").notNull(),
-  role: text("role").default("resident"),
-  createdAt: timestamp("created_at").defaultNow(),
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  avatarUrl: text("avatar_url"),
+  role: text("role", { enum: ["resident", "professional", "admin"] })
+    .default("resident")
+    .notNull(),
+  emailVerified: boolean("email_verified").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  lastLogin: timestamp("last_login"),
+});
+
+export const sessions = pgTable("sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  deviceName: text("device_name"),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  lastActive: timestamp("last_active").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const userPreferences = pgTable("user_preferences", {
   id: text("id").primaryKey(),
-  userId: text("user_id").references(() => users.id),
+  userId: uuid("user_id").references(() => users.id),
   // Storing simple array of saved location objects
   savedLocations:
     jsonb("saved_locations").$type<
