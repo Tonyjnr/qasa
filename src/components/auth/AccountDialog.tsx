@@ -1,3 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/components/auth/AccountDialog.tsx - FIXED VERSION
+// Key changes:
+// 1. Remove userId parameter from authApi calls
+// 2. Server reads userId from JWT token automatically
+// 3. Fixed getSessions() call - it doesn't take userId parameter
+
 import { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Tabs from "@radix-ui/react-tabs";
@@ -54,77 +61,64 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
   }, [open]);
 
   const loadUserData = async () => {
-    const user = getCurrentUser();
-    if (user) {
-      // We can also fetch fresh data from API if we want updates like name changes
-      // const freshUser = await authApi.getCurrentUser();
-      setUserData({
-        email: user.email,
-        firstName: "User", // We don't have this in token, should fetch from API 'me'
-        lastName: "",
-        avatarUrl: null,
-        connectedAccounts: [],
-      });
-
-      // Fetch fresh details including name
-      try {
-        const freshUser = await authApi.getCurrentUser();
-        if (freshUser) {
-          setUserData({
-            email: freshUser.email,
-            firstName: freshUser.firstName || "",
-            lastName: freshUser.lastName || "",
-            avatarUrl: freshUser.avatarUrl,
-            connectedAccounts: [], // Mock for now
-          });
-        }
-      } catch (e) {
-        console.error("Failed to fetch fresh user data", e);
+    try {
+      // Fetch fresh details from server
+      const freshUser = await authApi.getCurrentUser();
+      if (freshUser) {
+        setUserData({
+          email: freshUser.email,
+          firstName: freshUser.firstName || "",
+          lastName: freshUser.lastName || "",
+          avatarUrl: freshUser.avatarUrl || null,
+          connectedAccounts: [], // Mock for now
+        });
+      }
+    } catch (e) {
+      console.error("Failed to fetch fresh user data", e);
+      // Fallback to token data
+      const user = getCurrentUser();
+      if (user) {
+        setUserData({
+          email: user.email,
+          firstName: "User",
+          lastName: "",
+          avatarUrl: null,
+          connectedAccounts: [],
+        });
       }
     }
   };
 
   const loadSessions = async () => {
     try {
-      const user = getCurrentUser();
-      if (user) {
-        // Since we are using a mock API that maps directly to DB schema, we might need to adapt the type
-        // if the API returns raw DB fields (snake_case) vs component expectation (camelCase).
-        // Let's check authApi.getSessions implementation.
-        // It returns `userSessions` from `db.query.sessions.findMany`.
-        // Drizzle schema uses camelCase for keys in TS.
-        // So it should match `deviceName`, `ipAddress`, etc.
-        // We need to map `ipAddress` to `ip` and ensure `isCurrent` logic.
+      // ✅ FIXED: Server reads userId from JWT token automatically
+      const fetchedSessions = await authApi.getSessions();
 
-        const fetchedSessions = await authApi.getSessions(user.userId);
-
-        setSessions(
-          fetchedSessions.map(
-            (s: {
-              id: string;
-              deviceName: string | null;
-              ipAddress: string | null;
-              lastActive: Date;
-            }) => ({
-              id: s.id,
-              deviceName: s.deviceName || "Unknown Device",
-              os: "Unknown OS", // Schema doesn't have OS
-              location: "Unknown Location", // Schema doesn't have location
-              ip: s.ipAddress || "Unknown",
-              isCurrent: false, // We can't easily determine 'current' without session ID
-              lastActive: new Date(s.lastActive).toLocaleString(),
-            })
-          )
-        );
-      }
+      setSessions(
+        fetchedSessions.map(
+          (s: {
+            id: string;
+            deviceName: string | null;
+            ipAddress: string | null;
+            lastActive: Date;
+          }) => ({
+            id: s.id,
+            deviceName: s.deviceName || "Unknown Device",
+            os: "Unknown OS",
+            location: "Unknown Location",
+            ip: s.ipAddress || "Unknown",
+            isCurrent: false,
+            lastActive: new Date(s.lastActive).toLocaleString(),
+          })
+        )
+      );
     } catch (error) {
       console.error("Failed to load sessions", error);
+      toast.error("Failed to load sessions");
     }
   };
 
   const handlePasswordUpdate = async () => {
-    // For a better UX, we would have a form in the UI.
-    // For this implementation, we'll use prompts to get the values to connect the API.
     const currentPassword = window.prompt("Enter your current password:");
     if (!currentPassword) return;
 
@@ -133,13 +127,11 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
 
     setIsLoading(true);
     try {
-      const user = getCurrentUser();
-      if (!user) throw new Error("User not found");
-
-      await authApi.updatePassword(user.userId, currentPassword, newPassword);
+      // ✅ FIXED: Server reads userId from JWT token
+      await authApi.updatePassword(currentPassword, newPassword);
       toast.success("Password updated successfully");
-    } catch {
-      toast.error("Failed to update password. Check your current password.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update password");
     } finally {
       setIsLoading(false);
     }
@@ -150,8 +142,8 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
       await authApi.revokeSession(sessionId);
       setSessions((prev) => prev.filter((s) => s.id !== sessionId));
       toast.success("Device signed out successfully");
-    } catch {
-      toast.error("Failed to sign out device");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to sign out device");
     }
   };
 
@@ -169,18 +161,15 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
     if (!password) return;
 
     try {
-      const user = getCurrentUser();
-      if (!user) throw new Error("User not found");
-
-      await authApi.deleteAccount(user.userId, password);
+      // ✅ FIXED: Server reads userId from JWT token
+      await authApi.deleteAccount(password);
 
       toast.success("Account deleted successfully");
       onOpenChange(false);
-      // Force logout
       removeAuthToken();
       window.location.reload();
-    } catch {
-      toast.error("Failed to delete account. Incorrect password.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete account");
     }
   };
 
