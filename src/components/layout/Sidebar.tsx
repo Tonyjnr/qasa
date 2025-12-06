@@ -71,7 +71,7 @@ export const Sidebar = ({
 
   return (
     <aside
-      className="relative flex h-auto w-full flex-col border-l border-slate-200 p-6 shadow-xl lg:h-full lg:w-[400px] dark:border-slate-800"
+      className="relative flex h-auto w-full flex-col border-l border-slate-200 p-6 shadow-xl lg:h-full lg:w-[calc(400px_+_10%)] dark:border-slate-800"
       style={{ backgroundColor: "#F8FAFC" }}
     >
       {/* Decorative Gradients (Subtle Light Mode) */}

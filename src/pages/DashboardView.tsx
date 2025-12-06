@@ -109,19 +109,19 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
           </div>
         </main>
         {/* Right Panel Skeleton */}
-        <aside className="hidden h-full w-[400px] border-l border-white/5 bg-[#0F172A] p-6 lg:block">
+        <aside className="hidden h-full w-[calc(400px_+_10%)] border-l border-slate-200 bg-[#F8FAFC] p-6 lg:block">
           <div className="space-y-8">
             <div className="flex justify-center pt-8">
-              <div className="h-24 w-24 rounded-3xl bg-white/10 animate-pulse" />
+              <div className="h-24 w-24 rounded-3xl bg-slate-200 animate-pulse" />
             </div>
             <div className="space-y-4">
-              <div className="mx-auto h-20 w-3/4 rounded bg-white/10 animate-pulse" />
-              <div className="mx-auto h-8 w-1/2 rounded bg-white/10 animate-pulse" />
+              <div className="mx-auto h-20 w-3/4 rounded bg-slate-200 animate-pulse" />
+              <div className="mx-auto h-8 w-1/2 rounded bg-slate-200 animate-pulse" />
             </div>
-            <div className="h-32 w-full rounded-2xl bg-white/10 animate-pulse" />
+            <div className="h-32 w-full rounded-2xl bg-slate-200 animate-pulse" />
             <div className="space-y-4 pt-8">
-              <div className="h-12 w-full rounded bg-white/10 animate-pulse" />
-              <div className="h-12 w-full rounded bg-white/10 animate-pulse" />
+              <div className="h-12 w-full rounded bg-slate-200 animate-pulse" />
+              <div className="h-12 w-full rounded bg-slate-200 animate-pulse" />
             </div>
           </div>
         </aside>
