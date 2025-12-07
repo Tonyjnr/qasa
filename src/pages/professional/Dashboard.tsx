@@ -7,46 +7,41 @@ import {
   Search,
 } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
-import { ThemeToggle } from "../components/ui/theme-toggle";
-import { Sidebar } from "../components/layout/Sidebar";
-import { useAirQuality } from "../hooks/useAirQuality";
+import { ThemeToggle } from "../../components/ui/theme-toggle";
+import { Sidebar } from "../../components/layout/Sidebar";
+import { useAirQuality } from "../../hooks/useAirQuality";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { apiService, type Dataset } from "../../services/apiService";
 
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { AIAssistant } from "../components/ai/AIAssistant";
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { AIAssistant } from "../../components/ai/AIAssistant";
 
-// Mock data for the Professional View
-const DATA_SETS = [
-  {
-    id: 1,
-    name: "Lagos_Mainland_Q3_2024.csv",
-    size: "2.4 MB",
-    date: "2024-10-24",
-  },
-  {
-    id: 2,
-    name: "Industrial_Zone_PM25_Raw.json",
-    size: "156 KB",
-    date: "2024-10-23",
-  },
-  {
-    id: 3,
-    name: "Sensor_Calibration_Logs.pdf",
-    size: "1.1 MB",
-    date: "2024-10-20",
-  },
-];
-
-export const ProfessionalDashboardView = () => {
+export const Dashboard = () => {
   const { data, isLoading, setLocation } = useAirQuality({
     enablePolling: true,
   });
+
+  const [datasets, setDatasets] = useState<Dataset[]>([]);
+
+  useEffect(() => {
+    async function fetchDatasets() {
+      try {
+        const result = await apiService.getDatasets();
+        setDatasets(result);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load datasets");
+      }
+    }
+    fetchDatasets();
+  }, []);
 
   const handleLocationSelect = (lat: number, lng: number, name: string) => {
     setLocation(lat, lng);
@@ -200,7 +195,7 @@ export const ProfessionalDashboardView = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {DATA_SETS.map((file) => (
+                  {datasets.map((file) => (
                     <tr
                       key={file.id}
                       className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
@@ -210,7 +205,7 @@ export const ProfessionalDashboardView = () => {
                         {file.name}
                       </td>
                       <td className="p-4 text-slate-500">{file.size}</td>
-                      <td className="p-4 text-slate-500">{file.date}</td>
+                      <td className="p-4 text-slate-500">{new Date(file.uploadedAt).toLocaleDateString()}</td>
                       <td className="p-4 text-right">
                         <Button
                           variant="ghost"
@@ -222,6 +217,11 @@ export const ProfessionalDashboardView = () => {
                       </td>
                     </tr>
                   ))}
+                  {datasets.length === 0 && (
+                     <tr>
+                        <td colSpan={4} className="p-4 text-center text-slate-500">No datasets found.</td>
+                     </tr>
+                  )}
                 </tbody>
               </table>
             </div>

@@ -35,65 +35,178 @@
 
 @layer base {
   :root {
+    /* ========================================
+       LIGHT MODE - Base Colors
+       ======================================== */
+
+    /* Background & Surface Colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary Brand Colors (Blue) */
+    --primary: 221 83% 53%; /* #4285F4 - Google Blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
+    /* Secondary Colors (Cool Gray) */
+    --secondary: 214 32% 91%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
+    /* Muted/Subtle Colors */
+    --muted: 214 32% 91%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent Colors (Emerald Green) */
+    --accent: 142 76% 36%; /* #0F9D58 - Google Green */
+    --accent-foreground: 0 0% 100%;
 
+    /* Destructive/Error Colors */
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
+    /* Border & Input */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.5rem;
+    /* Border Radius */
+    --radius: 0.75rem;
+
+    /* ========================================
+       CUSTOM DESIGN TOKENS - LIGHT MODE
+       ======================================== */
+
+    /* Dashboard Background */
+    --dashboard-bg: 210 40% 98%; /* #F8FAFC */
+    --dashboard-surface: 0 0% 100%;
+    --dashboard-surface-elevated: 0 0% 100%;
+
+    /* Sidebar Colors */
+    --sidebar-bg: 210 40% 98%; /* #F8FAFC */
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-text: 215.4 16.3% 46.9%;
+    --sidebar-text-active: 222.2 84% 4.9%;
+
+    /* AQI Status Colors */
+    --aqi-good: 142 76% 36%; /* Green */
+    --aqi-moderate: 45 93% 47%; /* Yellow */
+    --aqi-unhealthy-sensitive: 25 95% 53%; /* Orange */
+    --aqi-unhealthy: 0 72% 51%; /* Red */
+    --aqi-very-unhealthy: 348 83% 47%; /* Rose */
+    --aqi-hazardous: 271 91% 65%; /* Purple */
+
+    /* Glassmorphism Effects */
+    --glass-bg: 0 0% 100% / 0.6;
+    --glass-border: 0 0% 100% / 0.4;
+    --glass-backdrop: blur(12px);
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(221 83% 53%) 0%,
+      hsl(142 76% 36%) 100%
+    );
+    --gradient-danger: linear-gradient(
+      135deg,
+      hsl(0 72% 51%) 0%,
+      hsl(348 83% 47%) 100%
+    );
+    --gradient-success: linear-gradient(
+      135deg,
+      hsl(142 76% 36%) 0%,
+      hsl(158 64% 52%) 100%
+    );
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 /
+            0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 /
+            0.1);
+
+    /* Animations */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* ========================================
+       DARK MODE - Base Colors
+       ======================================== */
+
+    /* Background & Surface Colors */
+    --background: 222.2 84% 4.9%; /* Deep Navy */
     --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
+    --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
-
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    /* Primary Brand Colors (Brighter in dark mode) */
+    --primary: 213 94% 68%; /* Lighter blue for dark bg */
     --primary-foreground: 222.2 47.4% 11.2%;
 
+    /* Secondary Colors */
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
+    /* Muted/Subtle Colors */
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    /* Accent Colors (Brighter green) */
+    --accent: 142 71% 45%;
     --accent-foreground: 210 40% 98%;
 
+    /* Destructive/Error Colors */
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
+    /* Border & Input */
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 213 94% 68%;
+
+    /* ========================================
+       CUSTOM DESIGN TOKENS - DARK MODE
+       ======================================== */
+
+    /* Dashboard Background */
+    --dashboard-bg: 222.2 84% 4.9%; /* #0F172A - Deep Navy */
+    --dashboard-surface: 217.2 32.6% 17.5%;
+    --dashboard-surface-elevated: 215.4 16.3% 25%;
+
+    /* Sidebar Colors */
+    --sidebar-bg: 222.2 84% 4.9%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-text: 215 20.2% 65.1%;
+    --sidebar-text-active: 210 40% 98%;
+
+    /* AQI Status Colors (Adjusted for dark mode) */
+    --aqi-good: 142 71% 45%;
+    --aqi-moderate: 45 93% 55%;
+    --aqi-unhealthy-sensitive: 25 95% 60%;
+    --aqi-unhealthy: 0 72% 60%;
+    --aqi-very-unhealthy: 348 83% 57%;
+    --aqi-hazardous: 271 91% 70%;
+
+    /* Glassmorphism Effects */
+    --glass-bg: 217.2 32.6% 17.5% / 0.6;
+    --glass-border: 210 40% 98% / 0.1;
+    --glass-backdrop: blur(12px);
+
+    /* Shadows (Deeper in dark mode) */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 /
+            0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 /
+            0.5);
   }
 }
 
@@ -101,10 +214,146 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Smooth transitions for theme changes */
+  * {
+    transition-property: color, background-color, border-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
   }
 }
+
+/* ========================================
+   UTILITY CLASSES
+   ======================================== */
+
+@layer utilities {
+  /* Dashboard Backgrounds */
+  .dashboard-bg {
+    background-color: hsl(var(--dashboard-bg));
+  }
+
+  .dashboard-surface {
+    background-color: hsl(var(--dashboard-surface));
+  }
+
+  .dashboard-surface-elevated {
+    background-color: hsl(var(--dashboard-surface-elevated));
+  }
+
+  /* Glassmorphism */
+  .glass {
+    background-color: hsl(var(--glass-bg));
+    border: 1px solid hsl(var(--glass-border));
+    backdrop-filter: var(--glass-backdrop);
+  }
+
+  /* AQI Status Colors */
+  .aqi-good {
+    background-color: hsl(var(--aqi-good));
+  }
+
+  .aqi-moderate {
+    background-color: hsl(var(--aqi-moderate));
+  }
+
+  .aqi-unhealthy-sensitive {
+    background-color: hsl(var(--aqi-unhealthy-sensitive));
+  }
+
+  .aqi-unhealthy {
+    background-color: hsl(var(--aqi-unhealthy));
+  }
+
+  .aqi-very-unhealthy {
+    background-color: hsl(var(--aqi-very-unhealthy));
+  }
+
+  .aqi-hazardous {
+    background-color: hsl(var(--aqi-hazardous));
+  }
+
+  /* Gradient Backgrounds */
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-danger {
+    background: var(--gradient-danger);
+  }
+
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+
+  /* Animations */
+  .animate-marquee {
+    animation: marquee 50s linear infinite;
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Pulse animation for live indicators */
+  .pulse-live {
+    animation: pulse-live 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-live {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    animation: fadeIn var(--transition-base) ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Slide up animation */
+  .slide-up {
+    animation: slideUp var(--transition-slow) ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+/* ========================================
+   COMPONENT-SPECIFIC OVERRIDES
+   ======================================== */
 
 /* Force hide Clerk's footer and branding */
 .cl-footer,
@@ -113,17 +362,46 @@
   display: none !important;
 }
 
-@layer utilities {
-  .animate-marquee {
-    animation: marquee 50s linear infinite;
-  }
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: hsl(var(--card));
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Selection colors */
+::selection {
+  background-color: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
+
+.dark ::selection {
+  background-color: hsl(var(--primary) / 0.5);
+  color: hsl(var(--foreground));
 }

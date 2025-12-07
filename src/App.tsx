@@ -1,28 +1,55 @@
-import { useState, lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   ClerkProvider,
   SignedIn,
   SignedOut,
   useUser,
 } from "@clerk/clerk-react";
-import { AuthDialog } from "./components/auth/AuthDialog";
-const DashboardView = lazy(() =>
-  import("./pages/DashboardView").then((module) => ({
-    default: module.DashboardView,
-  }))
-);
-const ProfessionalDashboardView = lazy(() =>
-  import("./pages/ProfessionalDashboardView").then((module) => ({
-    default: module.ProfessionalDashboardView,
-  }))
-);
-const AuthView = lazy(() =>
-  import("./pages/AuthView").then((module) => ({
-    default: module.AuthView,
-  }))
-);
-import type { UserRole } from "./types";
 import { Toaster } from "sonner";
+import { AuthDialog } from "./components/auth/AuthDialog";
+import type { UserRole } from "./types";
+
+// Lazy load pages
+const AuthView = lazy(() =>
+  import("./pages/AuthView").then((m) => ({ default: m.AuthView }))
+);
+const ResidentDashboard = lazy(() =>
+  import("./pages/resident/Dashboard").then((m) => ({ default: m.Dashboard }))
+);
+const MapView = lazy(() =>
+  import("./pages/resident/MapView").then((m) => ({ default: m.MapView }))
+);
+const TrendsView = lazy(() =>
+  import("./pages/resident/TrendsView").then((m) => ({ default: m.TrendsView }))
+);
+const NotificationsView = lazy(() =>
+  import("./pages/resident/NotificationsView").then((m) => ({
+    default: m.NotificationsView,
+  }))
+);
+const ProfileView = lazy(() =>
+  import("./pages/ProfileView").then((m) => ({ default: m.ProfileView }))
+);
+
+const ProfessionalDashboard = lazy(() =>
+  import("./pages/professional/Dashboard").then((m) => ({
+    default: m.Dashboard,
+  }))
+);
+const RiskCalculator = lazy(() =>
+  import("./pages/professional/RiskCalculator").then((m) => ({
+    default: m.RiskCalculator,
+  }))
+);
+const DataUpload = lazy(() =>
+  import("./pages/professional/DataUpload").then((m) => ({
+    default: m.DataUpload,
+  }))
+);
+const Reports = lazy(() =>
+  import("./pages/professional/Reports").then((m) => ({ default: m.Reports }))
+);
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -41,42 +68,84 @@ function LoadingSpinner() {
   );
 }
 
+function ProtectedRoutes() {
+  const { user } = useUser();
+  const role = (user?.publicMetadata?.role as string) || "resident";
+
+  return (
+    <Routes>
+      {/* Resident Routes */}
+      {role === "resident" && (
+        <>
+          <Route path="/" element={<ResidentDashboard />} />
+          <Route path="/map" element={<MapView />} />
+          <Route path="/trends" element={<TrendsView />} />
+          <Route path="/notifications" element={<NotificationsView />} />
+          <Route path="/profile" element={<ProfileView />} />
+        </>
+      )}
+
+      {/* Professional Routes */}
+      {role === "professional" && (
+        <>
+          <Route path="/" element={<ProfessionalDashboard />} />
+          <Route path="/risk-calculator" element={<RiskCalculator />} />
+          <Route path="/data-upload" element={<DataUpload />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/profile" element={<ProfileView />} />
+        </>
+      )}
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
 function AppContent() {
-  const { isLoaded, user } = useUser();
   const [authOpen, setAuthOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>("resident");
-
-  const currentRole = (user?.publicMetadata?.role as UserRole) ?? selectedRole;
-
-  if (!isLoaded) {
-    return <LoadingSpinner />;
-  }
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
       <SignedOut>
-        <AuthView
-          onRoleSelect={setSelectedRole}
-          onGetStarted={() => setAuthOpen(true)}
-        />
-        <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
+        <Routes>
+          <Route
+            path="*"
+            element={
+              <>
+                <AuthView
+                  onRoleSelect={setSelectedRole}
+                  onGetStarted={() => setAuthOpen(true)}
+                />
+                <AuthDialog
+                  open={authOpen}
+                  onOpenChange={setAuthOpen}
+                  defaultRole={selectedRole}
+                />
+              </>
+            }
+          />
+        </Routes>
       </SignedOut>
       <SignedIn>
-        {currentRole === "professional" ? (
-          <ProfessionalDashboardView />
-        ) : (
-          <DashboardView role={currentRole} />
-        )}
+        <ProtectedRoutes />
       </SignedIn>
     </Suspense>
   );
 }
 
+import { ThemeProvider } from "./components/theme-provider";
+
 function App() {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <Toaster position="top-center" />
-      <AppContent />
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <BrowserRouter>
+          <Toaster position="top-center" />
+          <AppContent />
+        </BrowserRouter>
+      </ThemeProvider>
     </ClerkProvider>
   );
 }

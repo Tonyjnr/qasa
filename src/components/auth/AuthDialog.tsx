@@ -3,14 +3,20 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { SignIn, SignUp } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
+import type { UserRole } from "../../types";
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultRole: UserRole;
 }
 
-export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+export function AuthDialog({
+  open,
+  onOpenChange,
+  defaultRole,
+}: AuthDialogProps) {
+  const [mode, setMode] = useState<"login" | "signup">("signup");
 
   const commonAppearance = {
     baseTheme: dark,
@@ -56,18 +62,34 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
               <X className="h-5 w-5" />
             </Dialog.Close>
 
-            <div className="bg-[#181818]">
+            <div className="bg-[#181818] pt-4 pb-2">
+              {/* Role Indicator Banner */}
+              <div className="px-6 pb-4 text-center">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-300 border border-blue-500/30">
+                  <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+                  Creating {defaultRole === "resident"
+                    ? "Resident"
+                    : "Professional"} Account
+                </div>
+              </div>
+
               {mode === "login" ? (
                 <SignIn
                   appearance={commonAppearance}
                   redirectUrl="/"
                   signUpUrl="#"
+                  // Pass role as unsafeMetadata during sign-in
+                  // Note: Sign-in doesn't typically set metadata, but we handle this in signup
                 />
               ) : (
                 <SignUp
                   appearance={commonAppearance}
                   afterSignUpUrl="/"
                   signInUrl="#"
+                  // Set the role in user's public metadata
+                  unsafeMetadata={{
+                    role: defaultRole,
+                  }}
                 />
               )}
 
@@ -77,7 +99,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     No account?{" "}
                     <button
                       onClick={() => setMode("signup")}
-                      className="text-blue-600 font-bold hover:underline"
+                      className="text-blue-400 font-bold hover:underline"
                     >
                       Sign up
                     </button>
@@ -87,7 +109,7 @@ export function AuthDialog({ open, onOpenChange }: AuthDialogProps) {
                     Already have an account?{" "}
                     <button
                       onClick={() => setMode("login")}
-                      className="text-blue-600 font-bold hover:underline"
+                      className="text-blue-400 font-bold hover:underline"
                     >
                       Sign in
                     </button>

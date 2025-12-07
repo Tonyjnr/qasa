@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowRight,
   Globe,
@@ -10,18 +10,14 @@ import {
 
 import type { UserRole } from "../types";
 import { LiveTicker } from "../components/layout/LiveTicker";
+import { fetchGlobalCityAQI } from "../services/realDataService";
 
-// Data for Home Screen Leaderboards
-const GLOBAL_RANKING = [
-  { rank: 1, city: "Lahore, PK", aqi: 352, status: "Hazardous" },
-  { rank: 2, city: "Delhi, IN", aqi: 289, status: "Very Unhealthy" },
-  { rank: 3, city: "Dhaka, BD", aqi: 195, status: "Unhealthy" },
+// Candidate cities for checking rankings (since we don't have a global ranking API)
+const POLLUTED_CANDIDATES = [
+  "Lahore, PK", "Delhi, IN", "Dhaka, BD", "Beijing, CN", "Karachi, PK", "Kolkata, IN", "Baghdad, IQ"
 ];
-
-const CLEANEST_CITIES = [
-  { rank: 1, city: "Zurich, CH", aqi: 4, status: "Good" },
-  { rank: 2, city: "Reykjavik, IS", aqi: 8, status: "Good" },
-  { rank: 3, city: "Helsinki, FI", aqi: 12, status: "Good" },
+const CLEAN_CANDIDATES = [
+  "Zurich, CH", "Reykjavik, IS", "Helsinki, FI", "Stockholm, SE", "Vancouver, CA", "Wellington, NZ", "Oslo, NO"
 ];
 
 interface AuthViewProps {
@@ -29,8 +25,56 @@ interface AuthViewProps {
   onGetStarted: () => void;
 }
 
+interface RankedCity {
+  rank: number;
+  city: string;
+  aqi: number;
+  status: string;
+}
+
 export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
   const [selectedRole, setSelectedRole] = useState<UserRole>("resident");
+  const [pollutedCities, setPollutedCities] = useState<RankedCity[]>([]);
+  const [cleanCities, setCleanCities] = useState<RankedCity[]>([]);
+  const [loadingRankings, setLoadingRankings] = useState(true);
+
+  useEffect(() => {
+    async function loadRankings() {
+      try {
+        // Fetch Polluted Candidates
+        const pollutedData = await fetchGlobalCityAQI(POLLUTED_CANDIDATES);
+        const sortedPolluted = pollutedData
+          .sort((a, b) => b.aqi - a.aqi) // Descending AQI
+          .slice(0, 3)
+          .map((item, index) => ({
+            rank: index + 1,
+            city: item.city,
+            aqi: item.aqi,
+            status: item.status
+          }));
+        setPollutedCities(sortedPolluted);
+
+        // Fetch Clean Candidates
+        const cleanData = await fetchGlobalCityAQI(CLEAN_CANDIDATES);
+        const sortedClean = cleanData
+          .sort((a, b) => a.aqi - b.aqi) // Ascending AQI
+          .slice(0, 3)
+          .map((item, index) => ({
+            rank: index + 1,
+            city: item.city,
+            aqi: item.aqi,
+            status: item.status
+          }));
+        setCleanCities(sortedClean);
+
+      } catch (error) {
+        console.error("Failed to load rankings", error);
+      } finally {
+        setLoadingRankings(false);
+      }
+    }
+    loadRankings();
+  }, []);
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden bg-slate-900 text-white font-sans selection:bg-blue-500 selection:text-white">
@@ -180,68 +224,80 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Most Polluted */}
-            <div className="bg-red-500/5 border border-red-500/10 rounded-3xl p-6">
+            <div className="bg-red-500/5 border border-red-500/10 rounded-3xl p-6 min-h-[300px]">
               <div className="flex items-center gap-2 mb-6">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
                 <h3 className="text-lg font-semibold text-red-200">
-                  Most Polluted Today
+                  Most Polluted Today (Live)
                 </h3>
               </div>
               <div className="space-y-4">
-                {GLOBAL_RANKING.map((item) => (
-                  <div
-                    key={item.city}
-                    className="flex items-center justify-between p-3 rounded-xl bg-red-900/10 border border-red-500/10"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="text-red-500 font-mono font-bold text-lg">
-                        #{item.rank}
-                      </span>
-                      <span className="font-medium">{item.city}</span>
+                {loadingRankings ? (
+                   <div className="space-y-4 animate-pulse">
+                     {[1,2,3].map(i => <div key={i} className="h-14 bg-white/5 rounded-xl" />)}
+                   </div>
+                ) : (
+                  pollutedCities.map((item) => (
+                    <div
+                      key={item.city}
+                      className="flex items-center justify-between p-3 rounded-xl bg-red-900/10 border border-red-500/10"
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-red-500 font-mono font-bold text-lg">
+                          #{item.rank}
+                        </span>
+                        <span className="font-medium">{item.city}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-300 hidden sm:block">
+                          {item.status}
+                        </span>
+                        <span className="font-bold text-white bg-red-600 px-2 py-1 rounded min-w-[3rem] text-center">
+                          {item.aqi}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs px-2 py-1 rounded bg-red-500/20 text-red-300">
-                        {item.status}
-                      </span>
-                      <span className="font-bold text-white bg-red-600 px-2 py-1 rounded min-w-[3rem] text-center">
-                        {item.aqi}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
             {/* Cleanest */}
-            <div className="bg-green-500/5 border border-green-500/10 rounded-3xl p-6">
+            <div className="bg-green-500/5 border border-green-500/10 rounded-3xl p-6 min-h-[300px]">
               <div className="flex items-center gap-2 mb-6">
                 <Leaf className="h-5 w-5 text-green-500" />
                 <h3 className="text-lg font-semibold text-green-200">
-                  Cleanest Air Today
+                  Cleanest Air Today (Live)
                 </h3>
               </div>
               <div className="space-y-4">
-                {CLEANEST_CITIES.map((item) => (
-                  <div
-                    key={item.city}
-                    className="flex items-center justify-between p-3 rounded-xl bg-green-900/10 border border-green-500/10"
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className="text-green-500 font-mono font-bold text-lg">
-                        #{item.rank}
-                      </span>
-                      <span className="font-medium">{item.city}</span>
+                {loadingRankings ? (
+                   <div className="space-y-4 animate-pulse">
+                     {[1,2,3].map(i => <div key={i} className="h-14 bg-white/5 rounded-xl" />)}
+                   </div>
+                ) : (
+                  cleanCities.map((item) => (
+                    <div
+                      key={item.city}
+                      className="flex items-center justify-between p-3 rounded-xl bg-green-900/10 border border-green-500/10"
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-green-500 font-mono font-bold text-lg">
+                          #{item.rank}
+                        </span>
+                        <span className="font-medium">{item.city}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-300 hidden sm:block">
+                          {item.status}
+                        </span>
+                        <span className="font-bold text-white bg-green-600 px-2 py-1 rounded min-w-[3rem] text-center">
+                          {item.aqi}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-300">
-                        {item.status}
-                      </span>
-                      <span className="font-bold text-white bg-green-600 px-2 py-1 rounded min-w-[3rem] text-center">
-                        {item.aqi}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>

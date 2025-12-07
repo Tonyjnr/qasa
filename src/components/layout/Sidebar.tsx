@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { AQIData } from "../../types";
 import { cn } from "../../lib/utils";
+import { getAQIColors, getAQILabel } from "../../lib/designTokens";
 
 interface SidebarProps {
   data: AQIData;
@@ -15,51 +16,36 @@ interface SidebarProps {
 }
 
 const getAQIStatus = (aqi: number) => {
-  if (aqi <= 50)
-    return {
-      label: "Good",
-      color: "text-emerald-400",
-      bg: "bg-emerald-500/10",
-      border: "border-emerald-500/20",
-      icon: ShieldCheck,
-      desc: "Air quality is satisfactory.",
-    };
-  if (aqi <= 100)
-    return {
-      label: "Moderate",
-      color: "text-amber-400",
-      bg: "bg-amber-500/10",
-      border: "border-amber-500/20",
-      icon: Activity,
-      desc: "Acceptable. Moderate health concern for sensitive groups.",
-    };
-  if (aqi <= 150)
-    return {
-      label: "Unhealthy for Sensitive Groups",
-      color: "text-orange-500",
-      bg: "bg-orange-500/10",
-      border: "border-orange-500/20",
-      icon: ShieldAlert,
-      desc: "General public is not likely affected.",
-    };
-  if (aqi <= 300)
-    return {
-      label: "Very Unhealthy",
-      color: "text-rose-500",
-      bg: "bg-rose-500/10",
-      border: "border-rose-500/20",
-      icon: Skull,
-      desc: "Health alert: serious health effects.",
-    };
+  const colors = getAQIColors(aqi);
+  const label = getAQILabel(aqi);
+
+  const iconMap = {
+    Good: ShieldCheck,
+    Moderate: Activity,
+    "Unhealthy for Sensitive Groups": ShieldAlert,
+    Unhealthy: Skull,
+    "Very Unhealthy": Skull,
+    Hazardous: Skull,
+  };
+
   return {
-    label: "Hazardous",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
-    border: "border-purple-500/20",
-    icon: Skull,
-    desc: "Health warning of emergency conditions.",
+    label,
+    color: colors.text,
+    bg: colors.bgClass,
+    border: colors.borderClass,
+    icon: iconMap[label as keyof typeof iconMap] || Activity,
+    desc: getAQIDescription(aqi),
   };
 };
+
+function getAQIDescription(aqi: number): string {
+  if (aqi <= 50) return "Air quality is satisfactory.";
+  if (aqi <= 100)
+    return "Acceptable. Moderate health concern for sensitive groups.";
+  if (aqi <= 150) return "General public is not likely affected.";
+  if (aqi <= 300) return "Health alert: serious health effects.";
+  return "Health warning of emergency conditions.";
+}
 
 export const Sidebar = ({
   data,
@@ -68,22 +54,26 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const status = getAQIStatus(data.aqi);
   const StatusIcon = status.icon;
+  const colors = getAQIColors(data.aqi);
 
   return (
     <aside
-      className="relative flex h-auto w-full flex-col border-l border-slate-200 p-6 shadow-xl lg:h-full lg:w-[calc(400px_+_10%)] dark:border-slate-800"
-      style={{ backgroundColor: "#F8FAFC" }}
+      className={cn(
+        "relative flex h-auto w-full flex-col p-6 shadow-xl lg:h-full lg:w-[calc(400px_+_10%)]",
+        "border-l border-border",
+        "bg-background"
+      )}
     >
-      {/* Decorative Gradients (Subtle Light Mode) */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-transparent opacity-50" />
+      {/* Decorative Gradients */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-transparent opacity-50 dark:from-blue-900/20" />
 
-      {/* Main Content Info */}
+      {/* Main Content */}
       <div className="relative z-10 flex flex-1 flex-col pt-12 px-2 text-left">
         <div>
-          <h2 className="text-4xl font-bold tracking-tight text-slate-900">
+          <h2 className="text-4xl font-bold tracking-tight text-foreground">
             {data.location.name}
           </h2>
-          <p className="mt-2 text-lg text-slate-500">
+          <p className="mt-2 text-lg text-muted-foreground">
             Today,{" "}
             {new Date().toLocaleTimeString([], {
               hour: "2-digit",
@@ -94,7 +84,7 @@ export const Sidebar = ({
 
         <div className="mt-16 text-center">
           <div className="flex flex-col items-center justify-center">
-            <span className="text-8xl font-black tracking-tighter text-slate-900">
+            <span className="text-8xl font-black tracking-tighter text-foreground">
               {isLoading ? "--" : data.aqi}
             </span>
             <span
@@ -111,12 +101,12 @@ export const Sidebar = ({
             <div
               className={cn(
                 "h-3 w-3 rounded-full animate-pulse",
-                status.color.replace("text-", "bg-")
+                colors.dotClass
               )}
             />
-            <p className="text-lg font-medium text-slate-600">
+            <p className="text-lg font-medium text-muted-foreground">
               Primary Pollutant:{" "}
-              <span className="text-slate-900 font-bold">
+              <span className="text-foreground font-bold">
                 PM2.5 ({data.pollutants.pm25})
               </span>
             </p>
@@ -124,14 +114,20 @@ export const Sidebar = ({
         </div>
 
         {/* Health Advisory */}
-        <div className="mt-12 rounded-2xl border border-slate-100 bg-slate-50 p-6">
+        <div
+          className={cn(
+            "mt-12 rounded-2xl p-6",
+            "border bg-card/50",
+            status.border
+          )}
+        >
           <div className="mb-3 flex items-center gap-3">
             <StatusIcon className={cn("h-6 w-6", status.color)} />
             <span className={cn("text-lg font-bold", status.color)}>
               {status.label}
             </span>
           </div>
-          <p className="text-sm leading-relaxed text-slate-500">
+          <p className="text-sm leading-relaxed text-muted-foreground">
             {status.desc}
           </p>
         </div>
@@ -139,7 +135,7 @@ export const Sidebar = ({
 
       {/* Monitoring Stations */}
       <div className="relative z-10 mt-auto pt-8">
-        <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
+        <h4 className="mb-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
           Monitoring Stations
         </h4>
         <div className="space-y-2">
@@ -172,34 +168,44 @@ export const Sidebar = ({
               aqi: 65,
               status: "Active",
             },
-          ].map((station, idx) => (
-            <button
-              key={idx}
-              onClick={() =>
-                onLocationSelect &&
-                onLocationSelect(station.lat, station.lng, station.name)
-              }
-              className="group flex w-full cursor-pointer items-center gap-4 rounded-lg border border-transparent bg-transparent p-2 transition-all hover:bg-slate-50 text-left"
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-md bg-slate-100 text-slate-400 transition-colors group-hover:bg-blue-100 group-hover:text-blue-500">
-                <MapPin className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-700 group-hover:text-slate-900">
-                  {station.name}
-                </p>
-                <p className="text-[10px] text-slate-400">{station.status}</p>
-              </div>
-              <span
+          ].map((station, idx) => {
+            const stationColors = getAQIColors(station.aqi);
+            return (
+              <button
+                key={idx}
+                onClick={() =>
+                  onLocationSelect &&
+                  onLocationSelect(station.lat, station.lng, station.name)
+                }
                 className={cn(
-                  "text-sm font-bold",
-                  station.aqi > 50 ? "text-amber-500" : "text-emerald-500"
+                  "group flex w-full cursor-pointer items-center gap-4 rounded-lg p-2 text-left",
+                  "border border-transparent transition-all",
+                  "hover:bg-accent hover:border-border"
                 )}
               >
-                {station.aqi}
-              </span>
-            </button>
-          ))}
+                <div
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
+                    "bg-muted text-muted-foreground",
+                    "group-hover:bg-primary/10 group-hover:text-primary"
+                  )}
+                >
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground group-hover:text-primary">
+                    {station.name}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {station.status}
+                  </p>
+                </div>
+                <span className={cn("text-sm font-bold", stationColors.text)}>
+                  {station.aqi}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </aside>

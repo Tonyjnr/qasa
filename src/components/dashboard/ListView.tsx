@@ -50,23 +50,17 @@ export const ListView = ({ data }: ListViewProps) => {
 
   const status = getAQIStatus(data.aqi);
 
-  // Common glassmorphic card style
+  // Common adaptive card style
   const cardClass =
-    "bg-white/60 backdrop-blur-md border border-white/40 shadow-sm rounded-2xl";
+    "bg-card/60 backdrop-blur-md border border-border shadow-sm rounded-2xl";
 
   return (
-    <div
-      className="relative h-full w-full overflow-y-auto p-4 space-y-4 text-slate-900"
-      style={{ backgroundColor: "#F8FAFC" }}
-    >
-      {/* Decorative Gradients (Subtle Light Mode) */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-transparent opacity-50" />
-
+    <div className="relative h-full w-full overflow-y-auto p-4 space-y-4 text-foreground">
       <div className="relative z-10 space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+        <h2 className="text-2xl font-bold tracking-tight">
           Weather Details
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           Comprehensive forecast & metrics
         </p>
       </div>
@@ -160,12 +154,12 @@ export const ListView = ({ data }: ListViewProps) => {
             <div key={key}>
               <div className="flex items-center justify-between py-2">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium leading-none uppercase text-slate-600">
+                  <p className="text-sm font-medium leading-none uppercase text-muted-foreground">
                     {key}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-sm font-bold text-slate-900">
+                  <div className="text-sm font-bold text-foreground">
                     {value}
                   </div>
                   <div className="h-2 w-16 rounded-full bg-slate-200/50">

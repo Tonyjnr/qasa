@@ -35,6 +35,29 @@ export const sessions = pgTable("sessions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const datasets = pgTable("datasets", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  size: text("size").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  type: text("type").notNull(), // csv, json, pdf
+  status: text("status").default("ready"),
+});
+
+export const notifications = pgTable("notifications", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id"), // Can be null for system-wide notifications
+  type: text("type", { enum: ["alert", "info", "success", "warning"] }).notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const userPreferences = pgTable("user_preferences", {
   id: text("id").primaryKey(),
   userId: uuid("user_id").references(() => users.id),

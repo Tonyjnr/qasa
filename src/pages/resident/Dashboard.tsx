@@ -1,18 +1,14 @@
 import { Search, Bell, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { useAirQuality } from "../hooks/useAirQuality";
+import { useAirQuality } from "../../hooks/useAirQuality";
 import { UserButton } from "@clerk/clerk-react";
-import type { UserRole } from "../types";
-import { PollutantGrid } from "../components/dashboard/PollutantGrid";
-import { ForecastList } from "../components/dashboard/ForecastList";
-import { Sidebar } from "../components/layout/Sidebar";
-import { InteractiveMap } from "../components/dashboard/InteractiveMap";
-import { ListView } from "../components/dashboard/ListView";
-import { CigaretteWidget } from "../components/dashboard/CigaretteWidget";
-import { ExerciseAdvisor } from "../components/dashboard/ExerciseAdvisor";
+import { PollutantGrid } from "../../components/dashboard/PollutantGrid";
+import { ForecastList } from "../../components/dashboard/ForecastList";
+import { Sidebar } from "../../components/layout/Sidebar";
+import { CigaretteWidget } from "../../components/dashboard/CigaretteWidget";
+import { ExerciseAdvisor } from "../../components/dashboard/ExerciseAdvisor";
 import { useState } from "react";
-import { searchLocation } from "../services/api";
+import { searchLocation } from "../../services/api";
 import { Toaster, toast } from "sonner";
-import { Dialog, DialogContent, DialogTrigger } from "../components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,22 +16,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import { ThemeToggle } from "../components/ui/theme-toggle";
-import { HistoricalChart } from "../components/dashboard/HistoricalChart";
-import {
-  HistoricalDataService,
-  type DailySummary,
-  type TrendAnalysis,
-} from "../services/historicalData";
-import { useEffect } from "react";
-import { AIAssistant } from "../components/ai/AIAssistant";
+} from "../../components/ui/dropdown-menu";
+import { ThemeToggle } from "../../components/ui/theme-toggle";
+import { AIAssistant } from "../../components/ai/AIAssistant";
+import { InteractiveMap } from "../../components/dashboard/InteractiveMap";
+import { ListView } from "../../components/dashboard/ListView";
+import { Dialog, DialogContent, DialogTrigger } from "../../components/ui/dialog";
 
-interface DashboardViewProps {
-  role: UserRole;
-}
-
-export const DashboardView = ({ role }: DashboardViewProps) => {
+export const Dashboard = () => {
   const { data, isLoading, error, refresh, setLocation } = useAirQuality({
     enablePolling: true,
   });
@@ -45,26 +33,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
-
-  const [historicalData, setHistoricalData] = useState<DailySummary[] | null>(
-    null
-  );
-  const [trendAnalysis, setTrendAnalysis] = useState<
-    TrendAnalysis["trend"] | undefined
-  >(undefined);
-
-  useEffect(() => {
-    async function fetchHistory() {
-      // Mock location ID for now
-      const analysis = await HistoricalDataService.getTrendAnalysis(
-        "current-location",
-        30
-      );
-      setHistoricalData(analysis.summaries);
-      setTrendAnalysis(analysis.trend);
-    }
-    fetchHistory();
-  }, [data?.location?.name]); // Re-fetch when location changes
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -102,7 +70,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
             </div>
             <div className="h-12 w-96 rounded-2xl bg-slate-200 animate-pulse hidden md:block" />
           </div>
-          <div className="mb-8 h-80 w-full rounded-[2rem] bg-slate-200 animate-pulse" />
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
             <div className="h-64 rounded-3xl bg-slate-200 animate-pulse" />
             <div className="h-64 rounded-3xl bg-slate-200 animate-pulse" />
@@ -113,15 +80,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
           <div className="space-y-8">
             <div className="flex justify-center pt-8">
               <div className="h-24 w-24 rounded-3xl bg-slate-200 animate-pulse" />
-            </div>
-            <div className="space-y-4">
-              <div className="mx-auto h-20 w-3/4 rounded bg-slate-200 animate-pulse" />
-              <div className="mx-auto h-8 w-1/2 rounded bg-slate-200 animate-pulse" />
-            </div>
-            <div className="h-32 w-full rounded-2xl bg-slate-200 animate-pulse" />
-            <div className="space-y-4 pt-8">
-              <div className="h-12 w-full rounded bg-slate-200 animate-pulse" />
-              <div className="h-12 w-full rounded bg-slate-200 animate-pulse" />
             </div>
           </div>
         </aside>
@@ -166,10 +124,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
               <span className="text-xs font-bold uppercase tracking-wider">
                 Dashboard
               </span>
-              <span className="text-xs">•</span>
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-500">
-                {role}
-              </span>
             </div>
             <h1 className="text-3xl font-bold text-slate-900">
               Air Quality Monitor
@@ -187,9 +141,8 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
                   const val = e.target.value;
                   setSearchQuery(val);
                   if (val.length >= 3) {
-                    // Debounce could be added but for now direct call
                     searchLocation(val).then((results) => {
-                      setSearchResults(results.slice(0, 5)); // Limit to 5
+                      setSearchResults(results.slice(0, 5));
                       setShowSearchResults(true);
                     });
                   } else {
@@ -325,16 +278,6 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
             </div>
           </div>
         </section>
-
-        {/* Historical Trends */}
-        {historicalData && (
-          <section className="mb-8">
-            <h2 className="mb-4 text-xl font-bold text-slate-800">
-              Historical Analysis
-            </h2>
-            <HistoricalChart data={historicalData} trend={trendAnalysis} />
-          </section>
-        )}
 
         {/* Health Insights Section */}
         {data && (
