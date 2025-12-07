@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 import { ThemeToggle } from "../components/ui/theme-toggle";
+import { Sidebar } from "../components/layout/Sidebar";
+import { useAirQuality } from "../hooks/useAirQuality";
+import { toast } from "sonner";
 
 import {
   Card,
@@ -16,6 +19,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { AIAssistant } from "../components/ai/AIAssistant";
 
 // Mock data for the Professional View
 const DATA_SETS = [
@@ -40,12 +44,19 @@ const DATA_SETS = [
 ];
 
 export const ProfessionalDashboardView = () => {
-  // In a real app, you might fetch specific professional data here
+  const { data, isLoading, setLocation } = useAirQuality({
+    enablePolling: true,
+  });
+
+  const handleLocationSelect = (lat: number, lng: number, name: string) => {
+    setLocation(lat, lng);
+    toast.success(`Location changed to ${name}`);
+  };
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-100 lg:flex-row">
-      {/* --- PROFESSIONAL SIDEBAR (Simplified for now) --- */}
-      <aside className="hidden w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 lg:flex">
+      {/* --- PROFESSIONAL SIDEBAR (Nav) --- */}
+      <aside className="hidden w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 lg:flex shrink-0">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-bold">
@@ -263,6 +274,17 @@ export const ProfessionalDashboardView = () => {
           </div>
         </div>
       </main>
+
+      {/* --- RIGHT LIVE SIDEBAR --- */}
+      {data && (
+        <Sidebar
+          data={data}
+          isLoading={isLoading}
+          onLocationSelect={handleLocationSelect}
+        />
+      )}
+
+      <AIAssistant mode="professional" contextData={data} />
     </div>
   );
 };

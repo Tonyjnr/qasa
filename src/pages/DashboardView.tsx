@@ -29,6 +29,7 @@ import {
   type TrendAnalysis,
 } from "../services/historicalData";
 import { useEffect } from "react";
+import { AIAssistant } from "../components/ai/AIAssistant";
 
 interface DashboardViewProps {
   role: UserRole;
@@ -360,6 +361,8 @@ export const DashboardView = ({ role }: DashboardViewProps) => {
           onLocationSelect={handleLocationSelect}
         />
       )}
+      {/* AI Assistant */}
+      <AIAssistant mode="resident" contextData={data} />
     </div>
   );
 };
