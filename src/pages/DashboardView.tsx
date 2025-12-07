@@ -1,6 +1,6 @@
 import { Search, Bell, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useAirQuality } from "../hooks/useAirQuality";
-import { UserButton } from "../components/auth/UserButton";
+import { UserButton } from "@clerk/clerk-react";
 import type { UserRole } from "../types";
 import { PollutantGrid } from "../components/dashboard/PollutantGrid";
 import { ForecastList } from "../components/dashboard/ForecastList";
@@ -32,10 +32,9 @@ import { useEffect } from "react";
 
 interface DashboardViewProps {
   role: UserRole;
-  onLogout: () => void; // Keep for interface compatibility if needed, though replaced by UserButton
 }
 
-export const DashboardView = ({ role, onLogout }: DashboardViewProps) => {
+export const DashboardView = ({ role }: DashboardViewProps) => {
   const { data, isLoading, error, refresh, setLocation } = useAirQuality({
     enablePolling: true,
   });
@@ -280,7 +279,7 @@ export const DashboardView = ({ role, onLogout }: DashboardViewProps) => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <UserButton onLogout={onLogout || (() => {})} />
+              <UserButton />
             </div>
           </div>
         </header>

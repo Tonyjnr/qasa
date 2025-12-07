@@ -2,7 +2,6 @@ import "dotenv/config"; // Load environment variables first
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authRoutes from "./routes/auth";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,7 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-app.use("/api/auth", authRoutes);
+// Auth routes removed for Clerk migration
 
 // Health check
 app.get("/health", (req, res) => {

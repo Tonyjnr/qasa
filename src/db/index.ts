@@ -30,6 +30,14 @@ if (!databaseUrl) {
 }
 
 // Create connection
+if (databaseUrl && (databaseUrl.includes("localhost") || databaseUrl.includes("127.0.0.1"))) {
+  console.warn(
+    "\n⚠️  WARNING: You are using a 'localhost' connection string with the '@neondatabase/serverless' driver.\n" +
+      "   This driver connects via HTTP and usually requires a Neon database.\n" +
+      "   If you want to use a local PostgreSQL database, you need to switch to the 'pg' driver.\n"
+  );
+}
+
 const sql = neon(
   databaseUrl || "postgresql://fallback:fallback@localhost:5432/fallback"
 );
