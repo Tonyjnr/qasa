@@ -37,12 +37,16 @@ export const COMPONENT_STYLES = {
     primary: "bg-primary text-primary-foreground hover:bg-primary/90",
     secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
     ghost: "hover:bg-accent hover:text-accent-foreground",
-    outline: "border border-input hover:bg-accent hover:text-accent-foreground",
+    outline:
+      "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
   },
   badge: {
-    default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-    secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-    destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+    default:
+      "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+    secondary:
+      "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+    destructive:
+      "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
     outline: "text-foreground",
   },
 } as const;
@@ -58,54 +62,54 @@ export function getAQIColors(aqi: number) {
   if (aqi <= 50) {
     return {
       bg: "var(--aqi-good)",
-      text: "text-[hsl(var(--aqi-good))]",
-      bgClass: "bg-[hsl(var(--aqi-good))]/10",
-      borderClass: "border-[hsl(var(--aqi-good))]/20",
-      dotClass: "bg-[hsl(var(--aqi-good))]",
+      text: "text-aqi-good",
+      bgClass: "bg-aqi-good/10",
+      borderClass: "border-aqi-good/20",
+      dotClass: "bg-aqi-good",
     };
   }
   if (aqi <= 100) {
     return {
       bg: "var(--aqi-moderate)",
-      text: "text-[hsl(var(--aqi-moderate))]",
-      bgClass: "bg-[hsl(var(--aqi-moderate))]/10",
-      borderClass: "border-[hsl(var(--aqi-moderate))]/20",
-      dotClass: "bg-[hsl(var(--aqi-moderate))]",
+      text: "text-aqi-moderate",
+      bgClass: "bg-aqi-moderate/10",
+      borderClass: "border-aqi-moderate/20",
+      dotClass: "bg-aqi-moderate",
     };
   }
   if (aqi <= 150) {
     return {
       bg: "var(--aqi-unhealthy-sensitive)",
-      text: "text-[hsl(var(--aqi-unhealthy-sensitive))]",
-      bgClass: "bg-[hsl(var(--aqi-unhealthy-sensitive))]/10",
-      borderClass: "border-[hsl(var(--aqi-unhealthy-sensitive))]/20",
-      dotClass: "bg-[hsl(var(--aqi-unhealthy-sensitive))]",
+      text: "text-aqi-unhealthy-sensitive",
+      bgClass: "bg-aqi-unhealthy-sensitive/10",
+      borderClass: "border-aqi-unhealthy-sensitive/20",
+      dotClass: "bg-aqi-unhealthy-sensitive",
     };
   }
   if (aqi <= 200) {
     return {
       bg: "var(--aqi-unhealthy)",
-      text: "text-[hsl(var(--aqi-unhealthy))]",
-      bgClass: "bg-[hsl(var(--aqi-unhealthy))]/10",
-      borderClass: "border-[hsl(var(--aqi-unhealthy))]/20",
-      dotClass: "bg-[hsl(var(--aqi-unhealthy))]",
+      text: "text-aqi-unhealthy",
+      bgClass: "bg-aqi-unhealthy/10",
+      borderClass: "border-aqi-unhealthy/20",
+      dotClass: "bg-aqi-unhealthy",
     };
   }
   if (aqi <= 300) {
     return {
       bg: "var(--aqi-very-unhealthy)",
-      text: "text-[hsl(var(--aqi-very-unhealthy))]",
-      bgClass: "bg-[hsl(var(--aqi-very-unhealthy))]/10",
-      borderClass: "border-[hsl(var(--aqi-very-unhealthy))]/20",
-      dotClass: "bg-[hsl(var(--aqi-very-unhealthy))]",
+      text: "text-aqi-very-unhealthy",
+      bgClass: "bg-aqi-very-unhealthy/10",
+      borderClass: "border-aqi-very-unhealthy/20",
+      dotClass: "bg-aqi-very-unhealthy",
     };
   }
   return {
     bg: "var(--aqi-hazardous)",
-    text: "text-[hsl(var(--aqi-hazardous))]",
-    bgClass: "bg-[hsl(var(--aqi-hazardous))]/10",
-    borderClass: "border-[hsl(var(--aqi-hazardous))]/20",
-    dotClass: "bg-[hsl(var(--aqi-hazardous))]",
+    text: "text-aqi-hazardous",
+    bgClass: "bg-aqi-hazardous/10",
+    borderClass: "border-aqi-hazardous/20",
+    dotClass: "bg-aqi-hazardous",
   };
 }
 
@@ -131,7 +135,14 @@ export function themeClasses(light: string, dark: string) {
 /**
  * Generates glassmorphism classes
  */
-export function glassEffect(intensity: "light" | "medium" | "heavy" = "medium") {
-  const opacity = intensity === "light" ? "bg-background/40" : intensity === "medium" ? "bg-background/60" : "bg-background/80";
+export function glassEffect(
+  intensity: "light" | "medium" | "heavy" = "medium"
+) {
+  const opacity =
+    intensity === "light"
+      ? "bg-background/40"
+      : intensity === "medium"
+      ? "bg-background/60"
+      : "bg-background/80";
   return cn(opacity, "backdrop-blur-md border border-border/50");
 }

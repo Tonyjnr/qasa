@@ -65,7 +65,7 @@ export const Sidebar = ({
       )}
     >
       {/* Decorative Gradients */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100 via-transparent to-transparent opacity-50 dark:from-blue-900/20" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-50" />
 
       {/* Main Content */}
       <div className="relative z-10 flex flex-1 flex-col pt-12 px-2 text-left">

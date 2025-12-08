@@ -59,10 +59,10 @@ if (!PUBLISHABLE_KEY) {
 
 function LoadingSpinner() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-900">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-        <p className="text-slate-400">Loading...</p>
+        <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     </div>
   );
@@ -135,12 +135,12 @@ function AppContent() {
   );
 }
 
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./contexts/ThemeProvider";
 
 function App() {
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <BrowserRouter>
           <Toaster position="top-center" />
           <AppContent />

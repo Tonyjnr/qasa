@@ -120,7 +120,28 @@ export const Dashboard = () => {
             </div>
             <ThemeToggle />
             <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
-            <UserButton />
+            <UserButton
+              appearance={{
+                elements: {
+                  userButtonPopoverFooter: "hidden",
+                  footer: "hidden",
+                  footerAction: "hidden",
+                  navbarMobileMenuFooter: "hidden",
+                },
+              }}
+              userProfileProps={{
+                appearance: {
+                  elements: {
+                    rootBox: "overflow-hidden",
+                    card: "overflow-hidden",
+                    scrollBox: "overflow-hidden",
+                    footer: "hidden",
+                    footerAction: "hidden",
+                    navbarMobileMenuFooter: "hidden",
+                  },
+                },
+              }}
+            />
           </div>
         </header>
 
@@ -205,7 +226,9 @@ export const Dashboard = () => {
                         {file.name}
                       </td>
                       <td className="p-4 text-slate-500">{file.size}</td>
-                      <td className="p-4 text-slate-500">{new Date(file.uploadedAt).toLocaleDateString()}</td>
+                      <td className="p-4 text-slate-500">
+                        {new Date(file.uploadedAt).toLocaleDateString()}
+                      </td>
                       <td className="p-4 text-right">
                         <Button
                           variant="ghost"
@@ -218,9 +241,14 @@ export const Dashboard = () => {
                     </tr>
                   ))}
                   {datasets.length === 0 && (
-                     <tr>
-                        <td colSpan={4} className="p-4 text-center text-slate-500">No datasets found.</td>
-                     </tr>
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="p-4 text-center text-slate-500"
+                      >
+                        No datasets found.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
