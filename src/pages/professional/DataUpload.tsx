@@ -51,7 +51,21 @@ export const DataUpload = () => {
     });
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      "text/csv": [".csv"],
+      "application/json": [".json"],
+      "application/pdf": [".pdf"],
+    },
+    maxSize: 50 * 1024 * 1024, // 50MB
+    onDropRejected: (fileRejections) => {
+      fileRejections.forEach((rejection) => {
+        const errorMsg = rejection.errors[0]?.message || "File rejected";
+        toast.error(`${rejection.file.name}: ${errorMsg}`);
+      });
+    },
+  });
 
   const removeFile = (id: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));

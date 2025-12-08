@@ -61,7 +61,7 @@ export const Sidebar = ({
   return (
     <aside
       className={cn(
-        "relative flex h-auto w-full flex-col p-6 shadow-xl lg:h-full lg:w-[calc(400px_+_10%)]",
+        "relative flex h-full w-full flex-col p-6 shadow-xl",
         "border-l border-border",
         "bg-background",
         className

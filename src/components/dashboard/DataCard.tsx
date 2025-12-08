@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { cn } from "../../lib/utils";
 import { COMPONENT_STYLES } from "../../lib/designTokens";

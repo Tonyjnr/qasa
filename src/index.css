@@ -82,7 +82,7 @@
     /* ========================================
        DARK MODE - Base Colors
        ======================================== */
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 40% 10%; /* Lighter and less saturated than before */
     --foreground: 210 40% 98%;
     --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
@@ -111,7 +111,7 @@
     --aqi-hazardous: 271 91% 70%;
 
     /* Dashboard Specific */
-    --dashboard-bg: 222.2 84% 4.9%;
+    --dashboard-bg: 222.2 40% 10%;
   }
 }
 

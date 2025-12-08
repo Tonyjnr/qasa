@@ -10,7 +10,6 @@ import {
   Menu,
   Bell,
   AlertTriangle,
-  X,
 } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { searchLocation } from "../../services/api";
@@ -23,6 +22,7 @@ import { ExerciseAdvisor } from "../../components/dashboard/ExerciseAdvisor";
 import { PollutantGrid } from "../../components/dashboard/PollutantGrid";
 import { ForecastList } from "../../components/dashboard/ForecastList";
 import { InteractiveMap } from "../../components/dashboard/InteractiveMap";
+import { ListView } from "../../components/dashboard/ListView";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { AIAssistant } from "../../components/ai/AIAssistant";
 import { cn } from "../../lib/utils";
@@ -40,6 +40,11 @@ import {
   ResizablePanelGroup,
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "../../components/ui/dialog";
 
 export default function ProfessionalDashboard() {
   // State Management
@@ -49,7 +54,6 @@ export default function ProfessionalDashboard() {
   const [activeTab, setActiveTab] = useState<string>(
     () => localStorage.getItem("professionalActiveTab") || "dashboard"
   );
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -104,7 +108,7 @@ export default function ProfessionalDashboard() {
   // Navigation Items
   const navItems = [
     { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { id: "overview", icon: LayoutDashboard, label: "Overview" },
+    { id: "overview", icon: FileText, label: "Research Overview" },
     { id: "risk", icon: Calculator, label: "Risk Calculator" },
     { id: "upload", icon: UploadCloud, label: "Data Upload" },
     { id: "reports", icon: FileText, label: "Reports" },
@@ -204,7 +208,6 @@ export default function ProfessionalDashboard() {
             <div className="flex items-center gap-4">
               <button
                 className="lg:hidden p-2 -ml-2 text-gray-500"
-                onClick={() => setIsSidebarOpen(true)}
               >
                 <Menu className="h-6 w-6" />
               </button>
@@ -319,6 +322,24 @@ export default function ProfessionalDashboard() {
                           toast.info("Fetching AQI for new location...");
                         }}
                       />
+                      {/* Help / Detailed View Trigger */}
+                      <div className="absolute right-4 top-4 z-[500]">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button
+                              className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-foreground shadow-lg transition-transform hover:scale-110 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
+                              title="Detailed View"
+                            >
+                              <span className="text-lg font-bold">?</span>
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-[68vw] h-[90vh] p-0 overflow-hidden bg-background border-border shadow-2xl rounded-3xl">
+                            <div className="h-full w-full overflow-hidden">
+                              <ListView data={data} />
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
                   </section>
 
