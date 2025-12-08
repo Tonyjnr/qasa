@@ -125,9 +125,13 @@ export const Dashboard = () => {
         {/* Header */}
         <header className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <span className="text-xs font-bold uppercase tracking-wider">
                 Dashboard
+              </span>
+              <span className="text-xs">›</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-500">
+                Resident
               </span>
             </div>
             <h1 className="text-3xl font-bold text-foreground">
