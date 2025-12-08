@@ -1,12 +1,11 @@
 import { ActivityRecommendation } from "../../services/activityRecommendation";
 import type { HourlyForecast } from "../../services/activityRecommendation";
 import { Dumbbell, Bike, Footprints, Clock } from "lucide-react";
+import { COMPONENT_STYLES } from "../../lib/designTokens";
+import { cn } from "../../lib/utils";
 
 interface ExerciseAdvisorProps {
   currentAQI: number;
-  // expects proper forecast items. We might need to map your existing forecast data to match HourlyForecast if it doesn't already.
-  // Existing 'forecast' in AQIData is: { time: string (ISO), aqi: number, icon: string }[] (from your services/airQualityService.ts)
-  // This matches exactly!
   forecast: HourlyForecast[];
 }
 
@@ -23,12 +22,17 @@ export function ExerciseAdvisor({
   ] as const;
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col h-full">
+    <div
+      className={cn(
+        "rounded-2xl p-6 flex flex-col h-full",
+        COMPONENT_STYLES.card.glass
+      )}
+    >
       <div className="flex items-center gap-2 mb-4">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/10 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
           <Dumbbell className="h-4 w-4" />
         </span>
-        <h3 className="text-lg font-bold text-slate-900">Exercise Advisor</h3>
+        <h3 className="text-lg font-bold text-foreground">Exercise Advisor</h3>
       </div>
 
       <div className="space-y-4 flex-1">
@@ -42,11 +46,11 @@ export function ExerciseAdvisor({
           return (
             <div
               key={act.id}
-              className="flex items-start gap-3 p-3 rounded-xl bg-slate-50"
+              className="flex items-start gap-3 p-3 rounded-xl bg-muted/30"
             >
-              <Icon className="h-5 w-5 text-slate-400 mt-0.5" />
+              <Icon className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <div className="text-sm font-bold text-slate-900">
+                <div className="text-sm font-bold text-foreground">
                   {act.label}
                 </div>
                 <div className={`text-xs font-medium ${advice.color}`}>
@@ -59,16 +63,25 @@ export function ExerciseAdvisor({
       </div>
 
       {bestWindow && (
-        <div className="mt-6 pt-4 border-t border-slate-100">
+        <div className="mt-6 pt-4 border-t border-border">
           <div className="flex items-center gap-2 mb-2">
-            <Clock className="h-4 w-4 text-emerald-500" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <Clock className="h-4 w-4 text-[hsl(var(--aqi-good))]" />
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Best 2h Window
             </span>
           </div>
-          <div className="bg-emerald-50 rounded-xl p-3 flex justify-between items-center">
+
+          <div
+            className="
+            rounded-xl p-3 flex justify-between items-center
+            bg-[hsl(var(--aqi-good)/0.1)]
+            dark:bg-[hsl(var(--aqi-good)/0.15)]
+            border border-[hsl(var(--aqi-good)/0.2)]
+            dark:border-[hsl(var(--aqi-good)/0.3)]
+          "
+          >
             <div>
-              <div className="text-emerald-900 font-bold">
+              <div className="font-bold text-[hsl(var(--aqi-good))]">
                 {new Date(bestWindow.start).toLocaleTimeString([], {
                   hour: "numeric",
                   minute: "2-digit",
@@ -79,11 +92,20 @@ export function ExerciseAdvisor({
                   minute: "2-digit",
                 })}
               </div>
-              <div className="text-xs text-emerald-600 mt-0.5">
+              <div className="text-xs text-[hsl(var(--aqi-good)/0.7)] mt-0.5">
                 Forecast AQI Avg: {bestWindow.avgAqi}
               </div>
             </div>
-            <div className="bg-white px-2 py-1 rounded-md text-xs font-bold text-emerald-600 shadow-sm border border-emerald-100">
+
+            <div
+              className="
+              px-2 py-1 rounded-md text-xs font-bold shadow-sm
+              bg-background dark:bg-card
+              text-[hsl(var(--aqi-good))]
+              border border-[hsl(var(--aqi-good)/0.2)]
+              dark:border-[hsl(var(--aqi-good)/0.3)]
+            "
+            >
               Recommended
             </div>
           </div>

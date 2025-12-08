@@ -138,6 +138,36 @@
   .animate-marquee {
     animation: marquee 50s linear infinite;
   }
+
+  .bg-aqi-good {
+    background-color: hsl(var(--aqi-good));
+  }
+
+  .bg-aqi-good-10 {
+    background-color: hsl(var(--aqi-good) / 0.1);
+  }
+
+  .bg-aqi-good-15 {
+    background-color: hsl(var(--aqi-good) / 0.15);
+  }
+
+  /* AQI Borders */
+  .border-aqi-good-20 {
+    border-color: hsl(var(--aqi-good) / 0.2);
+  }
+
+  .border-aqi-good-30 {
+    border-color: hsl(var(--aqi-good) / 0.3);
+  }
+
+  /* AQI Text */
+  .text-aqi-good {
+    color: hsl(var(--aqi-good));
+  }
+
+  .text-aqi-good-70 {
+    color: hsl(var(--aqi-good) / 0.7);
+  }
 }
 
 @keyframes marquee {
@@ -149,10 +179,3 @@
   }
 }
 
-/* Hide Clerk Development Footer */
-.cl-footer,
-.cl-footerAction,
-.cl-logoBadge,
-.cl-internal-b3fm6y {
-  display: none !important;
-}
