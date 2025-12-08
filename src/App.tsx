@@ -37,19 +37,6 @@ const ProfessionalDashboard = lazy(() =>
     default: m.Dashboard,
   }))
 );
-const RiskCalculator = lazy(() =>
-  import("./pages/professional/RiskCalculator").then((m) => ({
-    default: m.RiskCalculator,
-  }))
-);
-const DataUpload = lazy(() =>
-  import("./pages/professional/DataUpload").then((m) => ({
-    default: m.DataUpload,
-  }))
-);
-const Reports = lazy(() =>
-  import("./pages/professional/Reports").then((m) => ({ default: m.Reports }))
-);
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -89,9 +76,6 @@ function ProtectedRoutes() {
       {role === "professional" && (
         <>
           <Route path="/" element={<ProfessionalDashboard />} />
-          <Route path="/risk-calculator" element={<RiskCalculator />} />
-          <Route path="/data-upload" element={<DataUpload />} />
-          <Route path="/reports" element={<Reports />} />
           <Route path="/profile" element={<ProfileView />} />
         </>
       )}

@@ -13,6 +13,7 @@ interface SidebarProps {
   data: AQIData;
   isLoading: boolean;
   onLocationSelect?: (lat: number, lng: number, name: string) => void;
+  className?: string;
 }
 
 const getAQIStatus = (aqi: number) => {
@@ -51,6 +52,7 @@ export const Sidebar = ({
   data,
   isLoading,
   onLocationSelect,
+  className,
 }: SidebarProps) => {
   const status = getAQIStatus(data.aqi);
   const StatusIcon = status.icon;
@@ -61,7 +63,8 @@ export const Sidebar = ({
       className={cn(
         "relative flex h-auto w-full flex-col p-6 shadow-xl lg:h-full lg:w-[calc(400px_+_10%)]",
         "border-l border-border",
-        "bg-background"
+        "bg-background",
+        className
       )}
     >
       {/* Decorative Gradients */}
