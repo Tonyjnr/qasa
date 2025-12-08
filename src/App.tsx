@@ -70,7 +70,7 @@ function LoadingSpinner() {
 
 function ProtectedRoutes() {
   const { user } = useUser();
-  const role = (user?.publicMetadata?.role as string) || "resident";
+  const role = (user?.unsafeMetadata?.role as string) || "resident";
 
   return (
     <Routes>

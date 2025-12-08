@@ -63,6 +63,16 @@ export function AuthDialog({
             </Dialog.Close>
 
             <div className="bg-[#181818]">
+              {/* Role Indicator Banner - Show for both modes */}
+              <div className="px-6 pt-6 pb-4 text-center">
+                <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-300 border border-blue-500/30">
+                  <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+                  {mode === "signup" ? "Creating" : "Accessing"}{" "}
+                  {defaultRole === "resident" ? "Resident" : "Professional"}{" "}
+                  Account
+                </div>
+              </div>
+
               {mode === "login" ? (
                 <SignIn
                   appearance={commonAppearance}
