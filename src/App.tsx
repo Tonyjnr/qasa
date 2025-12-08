@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   ClerkProvider,
@@ -8,6 +8,7 @@ import {
 } from "@clerk/clerk-react";
 import { Toaster } from "sonner";
 import { AuthDialog } from "./components/auth/AuthDialog";
+import { OnboardingFlow } from "./components/onboarding/OnboardingFlow";
 import type { UserRole } from "./types";
 
 // Lazy load pages
@@ -89,6 +90,37 @@ function ProtectedRoutes() {
 function AppContent() {
   const [authOpen, setAuthOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>("resident");
+  const { user, isLoaded, isSignedIn } = useUser();
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      const hasCompletedOnboarding = user.unsafeMetadata?.onboardingCompleted;
+
+      if (!hasCompletedOnboarding) {
+        setNeedsOnboarding(true);
+      }
+    }
+  }, [isLoaded, user]);
+
+  const handleOnboardingComplete = async (role: UserRole) => {
+    if (user) {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          role,
+          onboardingCompleted: true,
+        },
+      });
+      setNeedsOnboarding(false);
+    }
+  };
+
+  if (!isLoaded) return <LoadingSpinner />;
+
+  if (isSignedIn && needsOnboarding) {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <Suspense fallback={<LoadingSpinner />}>

@@ -4,7 +4,8 @@ export class CigaretteEquivalence {
 
   static calculate(pm25: number, exposureHours: number = 24): number {
     // Daily exposure cigarette equivalent
-    const cigarettes = (pm25 * exposureHours) / this.PM25_PER_CIGARETTE;
+    // Formula: (PM2.5 / 22) * (hours / 24)
+    const cigarettes = (pm25 / this.PM25_PER_CIGARETTE) * (exposureHours / 24);
     // Round to 1 decimal place, minimum 0
     return Math.max(0, Math.round(cigarettes * 10) / 10);
   }

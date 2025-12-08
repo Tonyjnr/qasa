@@ -25,12 +25,21 @@ import { ForecastList } from "../../components/dashboard/ForecastList";
 import { InteractiveMap } from "../../components/dashboard/InteractiveMap";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { AIAssistant } from "../../components/ai/AIAssistant";
+import { cn } from "../../lib/utils";
 
 // Tab Content Components
 import { ResearchOverview } from "./ResearchOverview";
 import { RiskCalculator } from "./RiskCalculator";
 import { DataUpload } from "./DataUpload";
 import { Reports } from "./Reports";
+
+// Resizable & Scroll
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "../../components/ui/resizable";
+import { ScrollArea } from "../../components/ui/scroll-area";
 
 export default function ProfessionalDashboard() {
   // State Management
@@ -58,15 +67,10 @@ export default function ProfessionalDashboard() {
     if (activeTab === "overview") {
       const loadDatasets = async () => {
         try {
-          // Using the apiService to fetch datasets, or empty if fails (mock fallback handled by component?)
-          // Since apiService is available, let's try to use it.
-          // Note: apiService.getDatasets() calls /datasets, which might not exist in the mock server.
-          // For now, we wrap in try/catch.
           const res = await apiService.getDatasets();
           setDatasets(res);
         } catch (err) {
           console.error("Failed to fetch datasets", err);
-          // Fallback to empty or could set a mock state if critical
         }
       };
       loadDatasets();
@@ -146,210 +150,225 @@ export default function ProfessionalDashboard() {
   if (!data) return null;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-white">
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="h-screen w-full bg-gray-50 dark:bg-gray-900"
+    >
       <Toaster position="top-center" />
 
       {/* Left Sidebar */}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 w-[210px] flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 transition-transform duration-300 lg:static lg:flex ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
-      >
-        <div className="flex h-20 items-center border-b border-gray-200 dark:border-gray-800 px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
-              Pro
+      <ResizablePanel defaultSize={15} minSize={12} maxSize={20}>
+        <aside className="h-full flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <div className="flex h-20 items-center border-b border-gray-200 dark:border-gray-800 px-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
+                Pro
+              </div>
+              <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+                Research
+              </span>
             </div>
-            <span className="text-lg font-bold tracking-tight">Research</span>
           </div>
-          <button
-            className="ml-auto lg:hidden"
-            onClick={() => setIsSidebarOpen(false)}
-          >
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
-        </div>
 
-        <nav className="flex-1 space-y-1 p-4">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setIsSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === item.id
-                  ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
-              }`}
-            >
-              <item.icon className="h-4 w-4" /> {item.label}
-            </button>
-          ))}
-        </nav>
-      </aside>
+          <ScrollArea className="flex-1">
+            <nav className="space-y-1 p-4">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    activeTab === item.id
+                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" /> {item.label}
+                </button>
+              ))}
+            </nav>
+          </ScrollArea>
+        </aside>
+      </ResizablePanel>
+
+      <ResizableHandle
+        withHandle
+        className="bg-gray-200 dark:bg-gray-800 hover:bg-blue-500/20"
+      />
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Header with Search */}
-        <header className="flex h-auto flex-col justify-between gap-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-4 md:h-20 md:flex-row md:items-center md:py-0 lg:px-8">
-          <div className="flex items-center gap-4">
-            <button
-              className="lg:hidden p-2 -ml-2 text-gray-500"
-              onClick={() => setIsSidebarOpen(true)}
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-            <div>
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                <span className="text-xs font-bold uppercase tracking-wider">
-                  Dashboard
-                </span>
-                <span className="text-xs">›</span>
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                  Professional
-                </span>
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Air Quality Monitor
-              </h1>
-            </div>
-          </div>
-
-          <div className="flex w-full items-center gap-3 md:w-auto">
-            <div className="relative flex-1 md:w-96">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search city..."
-                value={searchQuery}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSearchQuery(val);
-                  if (val.length >= 3) {
-                    searchLocation(val).then((results) => {
-                      setSearchResults(results.slice(0, 5));
-                      setShowSearchResults(true);
-                    });
-                  } else {
-                    setShowSearchResults(false);
-                  }
-                }}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className={`w-full rounded-full border-none bg-white dark:bg-gray-800 py-3 pl-10 pr-4 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 transition-shadow focus:ring-2 focus:ring-blue-500 ${
-                  isSearching ? "opacity-50" : ""
-                }`}
-                disabled={isSearching}
-              />
-              {showSearchResults && searchResults.length > 0 && (
-                <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
-                  {searchResults.map((result, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() =>
-                        handleLocationSelect(
-                          result.lat,
-                          result.lng,
-                          result.name
-                        )
-                      }
-                      className="w-full border-b border-gray-200 dark:border-gray-700 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900 last:border-b-0"
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {result.name}
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {result.state ? `${result.state}, ` : ""}
-                        {result.country}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+      <ResizablePanel defaultSize={60} minSize={40}>
+        <div className="flex flex-1 flex-col h-full bg-gray-50 dark:bg-gray-900">
+          {/* Header */}
+          <header className="flex h-auto flex-col justify-between gap-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-4 md:h-20 md:flex-row md:items-center">
             <div className="flex items-center gap-4">
-              <button className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
-                <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
-                <Bell className="h-5 w-5" />
+              <button
+                className="lg:hidden p-2 -ml-2 text-gray-500"
+                onClick={() => setIsSidebarOpen(true)}
+              >
+                <Menu className="h-6 w-6" />
               </button>
-              <UserButton
-                appearance={{
-                  baseTheme: dark,
-                  elements: {
-                    userButtonPopoverFooter: "hidden",
-                  },
-                }}
-                userProfileProps={{
-                  appearance: {
+              <div>
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Dashboard
+                  </span>
+                  <span className="text-xs">›</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                    Professional
+                  </span>
+                </div>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  Air Quality Monitor
+                </h1>
+              </div>
+            </div>
+
+            <div className="flex w-full items-center gap-3 md:w-auto">
+              <div className="relative flex-1 md:w-96">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
+                  placeholder="Search city..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchQuery(val);
+                    if (val.length >= 3) {
+                      searchLocation(val).then((results) => {
+                        setSearchResults(results.slice(0, 5));
+                        setShowSearchResults(true);
+                      });
+                    } else {
+                      setShowSearchResults(false);
+                    }
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  className={`w-full rounded-full border-none bg-white dark:bg-gray-800 py-3 pl-10 pr-4 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 transition-shadow focus:ring-2 focus:ring-blue-500 ${
+                    isSearching ? "opacity-50" : ""
+                  }`}
+                  disabled={isSearching}
+                />
+                {showSearchResults && searchResults.length > 0 && (
+                  <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+                    {searchResults.map((result, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() =>
+                          handleLocationSelect(
+                            result.lat,
+                            result.lng,
+                            result.name
+                          )
+                        }
+                        className="w-full border-b border-gray-200 dark:border-gray-700 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900 last:border-b-0"
+                      >
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          {result.name}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {result.state ? `${result.state}, ` : ""}
+                          {result.country}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-4">
+                <button className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
+                  <Bell className="h-5 w-5" />
+                </button>
+                <UserButton
+                  appearance={{
                     baseTheme: dark,
                     elements: {
-                      rootBox: "overflow-hidden",
-                      card: "overflow-hidden",
-                      scrollBox: "overflow-hidden",
-                      footer: "hidden",
-                      footerAction: "hidden",
-                      navbarMobileMenuFooter: "hidden",
+                      userButtonPopoverFooter: "hidden",
                     },
-                  },
-                }}
-              />
-            </div>
-          </div>
-        </header>
-
-        {/* Conditional Content Rendering */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-10 bg-gray-50 dark:bg-gray-900">
-          {activeTab === "dashboard" && (
-            <>
-              {/* Map Section */}
-              <section className="mb-8">
-                <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 shadow-xl ring-1 ring-gray-200 dark:ring-gray-700 transition-all">
-                  <InteractiveMap
-                    data={data}
-                    onLocationChange={(lat, lng) => {
-                      setLocation(lat, lng);
-                      toast.info("Fetching AQI for new location...");
-                    }}
-                  />
-                </div>
-              </section>
-
-              {/* Health Insights */}
-              <section className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                <CigaretteWidget pm25={data.pollutants.pm25} />
-                <ExerciseAdvisor
-                  currentAQI={data.aqi}
-                  forecast={data.forecast}
+                  }}
+                  userProfileProps={{
+                    appearance: {
+                      baseTheme: dark,
+                      elements: {
+                        rootBox: "overflow-hidden",
+                        card: "overflow-hidden",
+                        scrollBox: "overflow-hidden",
+                        footer: "hidden",
+                        footerAction: "hidden",
+                        navbarMobileMenuFooter: "hidden",
+                      },
+                    },
+                  }}
                 />
-              </section>
-
-              {/* Pollutants & Forecast */}
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                <PollutantGrid pollutants={data.pollutants} />
-                <ForecastList forecast={data.forecast} />
               </div>
-            </>
-          )}
+            </div>
+          </header>
 
-          {activeTab === "overview" && (
-            <ResearchOverview datasets={datasets} />
-          )}
-          {activeTab === "risk" && <RiskCalculator data={data} />}
-          {activeTab === "upload" && <DataUpload />}
-          {activeTab === "reports" && <Reports />}
-        </main>
-      </div>
+          <ScrollArea className="flex-1">
+            <main className="p-4 lg:p-10">
+              {activeTab === "dashboard" && (
+                <>
+                  {/* Map Section */}
+                  <section className="mb-8">
+                    <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 shadow-xl ring-1 ring-gray-200 dark:ring-gray-700 transition-all">
+                      <InteractiveMap
+                        data={data}
+                        onLocationChange={(lat, lng) => {
+                          setLocation(lat, lng);
+                          toast.info("Fetching AQI for new location...");
+                        }}
+                      />
+                    </div>
+                  </section>
+
+                  {/* Health Insights */}
+                  <section className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <CigaretteWidget pm25={data.pollutants.pm25} />
+                    <ExerciseAdvisor
+                      currentAQI={data.aqi}
+                      forecast={data.forecast}
+                    />
+                  </section>
+
+                  {/* Pollutants & Forecast */}
+                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                    <PollutantGrid pollutants={data.pollutants} />
+                    <ForecastList forecast={data.forecast} />
+                  </div>
+                </>
+              )}
+
+              {activeTab === "overview" && (
+                <ResearchOverview datasets={datasets} />
+              )}
+              {activeTab === "risk" && <RiskCalculator data={data} />}
+              {activeTab === "upload" && <DataUpload />}
+              {activeTab === "reports" && <Reports />}
+            </main>
+          </ScrollArea>
+        </div>
+      </ResizablePanel>
+
+      <ResizableHandle
+        withHandle
+        className="bg-gray-200 dark:bg-gray-800 hover:bg-blue-500/20"
+      />
 
       {/* Right Sidebar */}
-      <Sidebar
-        data={data}
-        isLoading={isLoading}
-        onLocationSelect={handleLocationSelect}
-      />
+      <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+        <ScrollArea className="h-full">
+          <Sidebar
+            data={data}
+            isLoading={isLoading}
+            onLocationSelect={handleLocationSelect}
+            className="h-full w-full"
+          />
+        </ScrollArea>
+      </ResizablePanel>
 
       {/* AI Assistant */}
       <AIAssistant mode="professional" contextData={data} />
-    </div>
+    </ResizablePanelGroup>
   );
 }
