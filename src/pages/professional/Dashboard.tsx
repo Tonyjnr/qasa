@@ -7,7 +7,9 @@ import {
   Search,
 } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 import { ThemeToggle } from "../../components/ui/theme-toggle";
+import { useTheme } from "../../contexts/ThemeProvider";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { toast } from "sonner";
@@ -24,6 +26,7 @@ import { Button } from "../../components/ui/button";
 import { AIAssistant } from "../../components/ai/AIAssistant";
 
 export const Dashboard = () => {
+  const { theme } = useTheme();
   const { data, isLoading, setLocation } = useAirQuality({
     enablePolling: true,
   });
@@ -122,6 +125,7 @@ export const Dashboard = () => {
             <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
             <UserButton
               appearance={{
+                baseTheme: theme === "dark" ? dark : undefined,
                 elements: {
                   userButtonPopoverFooter: "hidden",
                   footer: "hidden",
@@ -131,6 +135,7 @@ export const Dashboard = () => {
               }}
               userProfileProps={{
                 appearance: {
+                  baseTheme: theme === "dark" ? dark : undefined,
                   elements: {
                     rootBox: "overflow-hidden",
                     card: "overflow-hidden",

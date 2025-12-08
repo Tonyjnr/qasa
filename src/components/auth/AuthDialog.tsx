@@ -62,38 +62,25 @@ export function AuthDialog({
               <X className="h-5 w-5" />
             </Dialog.Close>
 
-            <div className="bg-[#181818] pt-4 pb-2">
-              {/* Role Indicator Banner */}
-              <div className="px-6 pb-4 text-center">
-                <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/20 px-4 py-2 text-sm font-medium text-blue-300 border border-blue-500/30">
-                  <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
-                  Creating {defaultRole === "resident"
-                    ? "Resident"
-                    : "Professional"} Account
-                </div>
-              </div>
-
+            <div className="bg-[#181818]">
               {mode === "login" ? (
                 <SignIn
                   appearance={commonAppearance}
                   redirectUrl="/"
                   signUpUrl="#"
-                  // Pass role as unsafeMetadata during sign-in
-                  // Note: Sign-in doesn't typically set metadata, but we handle this in signup
                 />
               ) : (
                 <SignUp
                   appearance={commonAppearance}
                   afterSignUpUrl="/"
                   signInUrl="#"
-                  // Set the role in user's public metadata
                   unsafeMetadata={{
                     role: defaultRole,
                   }}
                 />
               )}
 
-              <div className="text-center pb-4 text-sm text-slate-500">
+              <div className="text-center pt-4 pb-4 text-sm text-slate-500">
                 {mode === "login" ? (
                   <p>
                     No account?{" "}

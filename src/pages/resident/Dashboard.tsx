@@ -26,6 +26,7 @@ import { ThemeToggle } from "../../components/ui/theme-toggle";
 import { AIAssistant } from "../../components/ai/AIAssistant";
 import { InteractiveMap } from "../../components/dashboard/InteractiveMap";
 import { ListView } from "../../components/dashboard/ListView";
+import { dark } from "@clerk/themes";
 
 export const Dashboard = () => {
   const { data, isLoading, error, refresh, setLocation } = useAirQuality({
@@ -234,12 +235,14 @@ export const Dashboard = () => {
 
               <UserButton
                 appearance={{
+                  baseTheme: dark,
                   elements: {
                     userButtonPopoverFooter: "hidden",
                   },
                 }}
                 userProfileProps={{
                   appearance: {
+                    baseTheme: dark,
                     elements: {
                       rootBox: "overflow-hidden",
                       card: "overflow-hidden",
