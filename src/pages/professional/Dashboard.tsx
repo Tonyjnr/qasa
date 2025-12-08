@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { UserButton } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 import {
   FileText,
   Calculator,
@@ -538,9 +540,27 @@ export default function ProfessionalDashboard() {
                 <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
                 <Bell className="h-5 w-5" />
               </button>
-              <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
-                DR
-              </div>
+              <UserButton
+                appearance={{
+                  baseTheme: dark,
+                  elements: {
+                    userButtonPopoverFooter: "hidden",
+                  },
+                }}
+                userProfileProps={{
+                  appearance: {
+                    baseTheme: dark,
+                    elements: {
+                      rootBox: "overflow-hidden",
+                      card: "overflow-hidden",
+                      scrollBox: "overflow-hidden",
+                      footer: "hidden",
+                      footerAction: "hidden",
+                      navbarMobileMenuFooter: "hidden",
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
         </header>
