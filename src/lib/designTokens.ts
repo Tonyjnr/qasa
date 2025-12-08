@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -62,54 +61,54 @@ export function getAQIColors(aqi: number) {
   if (aqi <= 50) {
     return {
       bg: "var(--aqi-good)",
-      text: "text-aqi-good",
-      bgClass: "bg-aqi-good/10",
-      borderClass: "border-aqi-good/20",
-      dotClass: "bg-aqi-good",
+      text: "text-emerald-600 dark:text-emerald-400", // Darker green/emerald
+      bgClass: "bg-emerald-100 dark:bg-emerald-900/30",
+      borderClass: "border-emerald-200 dark:border-emerald-800",
+      dotClass: "bg-emerald-500",
     };
   }
   if (aqi <= 100) {
     return {
       bg: "var(--aqi-moderate)",
-      text: "text-aqi-moderate",
-      bgClass: "bg-aqi-moderate/10",
-      borderClass: "border-aqi-moderate/20",
-      dotClass: "bg-aqi-moderate",
+      text: "text-yellow-600 dark:text-yellow-400",
+      bgClass: "bg-yellow-100 dark:bg-yellow-900/30",
+      borderClass: "border-yellow-200 dark:border-yellow-800",
+      dotClass: "bg-yellow-500",
     };
   }
   if (aqi <= 150) {
     return {
       bg: "var(--aqi-unhealthy-sensitive)",
-      text: "text-aqi-unhealthy-sensitive",
-      bgClass: "bg-aqi-unhealthy-sensitive/10",
-      borderClass: "border-aqi-unhealthy-sensitive/20",
-      dotClass: "bg-aqi-unhealthy-sensitive",
+      text: "text-orange-600 dark:text-orange-400",
+      bgClass: "bg-orange-100 dark:bg-orange-900/30",
+      borderClass: "border-orange-200 dark:border-orange-800",
+      dotClass: "bg-orange-500",
     };
   }
   if (aqi <= 200) {
     return {
       bg: "var(--aqi-unhealthy)",
-      text: "text-aqi-unhealthy",
-      bgClass: "bg-aqi-unhealthy/10",
-      borderClass: "border-aqi-unhealthy/20",
-      dotClass: "bg-aqi-unhealthy",
+      text: "text-red-600 dark:text-red-400",
+      bgClass: "bg-red-100 dark:bg-red-900/30",
+      borderClass: "border-red-200 dark:border-red-800",
+      dotClass: "bg-red-500",
     };
   }
   if (aqi <= 300) {
     return {
       bg: "var(--aqi-very-unhealthy)",
-      text: "text-aqi-very-unhealthy",
-      bgClass: "bg-aqi-very-unhealthy/10",
-      borderClass: "border-aqi-very-unhealthy/20",
-      dotClass: "bg-aqi-very-unhealthy",
+      text: "text-purple-600 dark:text-purple-400",
+      bgClass: "bg-purple-100 dark:bg-purple-900/30",
+      borderClass: "border-purple-200 dark:border-purple-800",
+      dotClass: "bg-purple-500",
     };
   }
   return {
     bg: "var(--aqi-hazardous)",
-    text: "text-aqi-hazardous",
-    bgClass: "bg-aqi-hazardous/10",
-    borderClass: "border-aqi-hazardous/20",
-    dotClass: "bg-aqi-hazardous",
+    text: "text-rose-700 dark:text-rose-400",
+    bgClass: "bg-rose-100 dark:bg-rose-900/30",
+    borderClass: "border-rose-200 dark:border-rose-800",
+    dotClass: "bg-rose-600",
   };
 }
 

@@ -45,17 +45,20 @@ export async function fetchHistoricalAQI(lat: number, lon: number, days = 30) {
   try {
     const endDate = new Date();
     const startDate = subDays(endDate, days);
-    
-    const response = await axios.get("https://air-quality-api.open-meteo.com/v1/air-quality", {
-      params: {
-        latitude: lat,
-        longitude: lon,
-        hourly: "us_aqi", // Directly fetch US AQI
-        start_date: format(startDate, "yyyy-MM-dd"),
-        end_date: format(endDate, "yyyy-MM-dd"),
-        timezone: "auto"
+
+    const response = await axios.get(
+      "https://air-quality-api.open-meteo.com/v1/air-quality",
+      {
+        params: {
+          latitude: lat,
+          longitude: lon,
+          hourly: "us_aqi", // Directly fetch US AQI
+          start_date: format(startDate, "yyyy-MM-dd"),
+          end_date: format(endDate, "yyyy-MM-dd"),
+          timezone: "auto",
+        },
       }
-    });
+    );
 
     const hourly = response.data.hourly;
     const timeArray = hourly.time;
@@ -63,13 +66,13 @@ export async function fetchHistoricalAQI(lat: number, lon: number, days = 30) {
 
     // Aggregate hourly data into daily averages for the chart
     const dailyData: any[] = [];
-    const tempMap = new Map<string, { sum: number, count: number }>();
+    const tempMap = new Map<string, { sum: number; count: number }>();
 
     timeArray.forEach((timestamp: string, index: number) => {
       // timestamp is ISO like "2024-01-01T00:00"
       const dateStr = timestamp.split("T")[0];
       const val = aqiArray[index];
-      
+
       if (val !== null && val !== undefined) {
         if (!tempMap.has(dateStr)) {
           tempMap.set(dateStr, { sum: 0, count: 0 });
@@ -83,12 +86,11 @@ export async function fetchHistoricalAQI(lat: number, lon: number, days = 30) {
     tempMap.forEach((value, key) => {
       dailyData.push({
         date: key, // YYYY-MM-DD
-        aqiAvg: Math.round(value.sum / value.count)
+        aqiAvg: Math.round(value.sum / value.count),
       });
     });
 
     return dailyData;
-
   } catch (error) {
     console.error("Failed to fetch historical AQI from Open-Meteo:", error);
     throw error;
@@ -125,7 +127,6 @@ export async function fetchWAQIHistorical(cityName: string) {
   }
 }
 
-
 // Real monitoring stations near location
 export async function fetchNearbyStations(lat: number, lon: number) {
   // For now, we'll use WAQI to find nearby stations
@@ -144,7 +145,6 @@ export async function fetchNearbyStations(lat: number, lon: number) {
       throw new Error("WAQI returned error");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return data.data.map((station: any) => ({
       name: station.station.name,
       lat: station.lat,
@@ -207,7 +207,7 @@ export async function storeAQIReading(
     // For this client-side file, we return the reading to be used by a backend service.
     // In a real implementation, this file would likely be shared or this function
     // would live in an API route.
-    
+
     console.log(`✅ Collected AQI reading for ${locationId}:`, reading.aqi);
     return reading;
   } catch (error) {

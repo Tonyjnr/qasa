@@ -34,7 +34,7 @@ const ProfileView = lazy(() =>
 
 const ProfessionalDashboard = lazy(() =>
   import("./pages/professional/Dashboard").then((m) => ({
-    default: m.Dashboard,
+    default: m.default,
   }))
 );
 
