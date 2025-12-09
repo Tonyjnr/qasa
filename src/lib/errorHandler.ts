@@ -16,18 +16,18 @@ export type ErrorType = typeof ErrorType[keyof typeof ErrorType];
 export interface AppErrorOptions {
   type: ErrorType;
   message: string;
-  originalError?: any;
+  originalError?: unknown;
   statusCode?: number;
   retryable: boolean;
-  details?: any;
+  details?: unknown;
 }
 
 export class AppError extends Error {
   public type: ErrorType;
-  public originalError?: any;
+  public originalError?: unknown;
   public statusCode?: number;
   public retryable: boolean;
-  public details?: any;
+  public details?: unknown;
 
   constructor(options: AppErrorOptions) {
     super(options.message);
@@ -56,6 +56,7 @@ export function handleError(error: unknown): AppError {
     }
 
     const status = axiosError.response.status;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data = axiosError.response.data as any;
 
     switch (status) {

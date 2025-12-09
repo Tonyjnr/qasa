@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { AppError } from '../lib/errorHandler';
+import { AppError, ErrorType } from '../lib/errorHandler';
 import { alertsService, type Alert } from '../services/alertsService';
 
 export function useAlerts() {
@@ -14,7 +14,7 @@ export function useAlerts() {
       setAlerts(data);
     } catch (err) {
       setError(err instanceof AppError ? err : new AppError({
-        type: 'UNKNOWN' as any,
+        type: ErrorType.UNKNOWN,
         message: 'Failed to fetch alerts',
         retryable: true
       }));
@@ -28,22 +28,14 @@ export function useAlerts() {
   }, [fetchAlerts]);
 
   const createAlert = async (alert: Omit<Alert, 'id'>) => {
-    try {
-      const newAlert = await alertsService.createAlert(alert);
-      setAlerts(prev => [...prev, newAlert]);
-      return newAlert;
-    } catch (err) {
-      throw err;
-    }
+    const newAlert = await alertsService.createAlert(alert);
+    setAlerts(prev => [...prev, newAlert]);
+    return newAlert;
   };
 
   const deleteAlert = async (id: string) => {
-    try {
-      await alertsService.deleteAlert(id);
-      setAlerts(prev => prev.filter(a => a.id !== id));
-    } catch (err) {
-      throw err;
-    }
+    await alertsService.deleteAlert(id);
+    setAlerts(prev => prev.filter(a => a.id !== id));
   };
 
   return { alerts, isLoading, error, fetchAlerts, createAlert, deleteAlert };

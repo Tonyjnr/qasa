@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/incompatible-library */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import { useRef, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";

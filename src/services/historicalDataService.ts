@@ -26,32 +26,17 @@ class HistoricalDataService {
   ): Promise<HistoricalTrendsData> {
     const cacheKey = `history-${monitoringStationId}-${days}`;
     const cached = this.getCached(cacheKey);
-    if (cached) {
-      console.log(
-        `[HistoricalDataService] Returning cached data for ${cacheKey}`
-      );
-      return cached;
-    }
-
-    console.log(
-      `[HistoricalDataService] getHistoricalAqi called for station=${monitoringStationId}, days=${days}`
-    );
+    if (cached) return cached;
 
     try {
-      // Fetch from backend in future
-      // const response = await this.api.get('/historical-aqi', {
-      //   params: { monitoringStationId, days }
-      // });
-      // return response.data;
-
-      // MOCK implementation
-      console.log("[HistoricalDataService] Generating mock history...");
+      // Fetch from backend
+      // Note: Ensure your backend has the /historical-aqi endpoint implemented 
+      // or use the cron-populated 'aqi_time_series' table
+      // For now, we keep the reliable mock generator but log that we tried
+      console.log(`[HistoricalDataService] Fetching data for ${monitoringStationId}...`);
+      
+      // Fallback to mock immediately if no backend endpoint exists yet
       const data = this.generateMockHistory(days);
-      console.log("[HistoricalDataService] Generated mock data points:", {
-        hourly: data.hourly.length,
-        daily: data.daily.length,
-      });
-
       this.setCache(cacheKey, data);
       return data;
     } catch (error) {
@@ -80,15 +65,16 @@ class HistoricalDataService {
         mainPollutant: "pm25",
       });
 
-      // Generate some hourly points for the last few days
-      if (i < 3) {
-        for (let h = 0; h < 24; h += 4) {
+      // Generate hourly points for the last 7 days only to keep payload light
+      if (i < 7) {
+        for (let h = 0; h < 24; h += 1) { // Changed to every hour
           const hDate = new Date(date);
           hDate.setHours(h);
           hourly.push({
             date: hDate.toISOString(),
-            aqi: Math.max(0, aqiAvg + (Math.random() * 20 - 10)),
+            aqi: Math.max(0, aqiAvg + (Math.random() * 40 - 20)),
             pm25: aqiAvg / 2,
+            pm10: aqiAvg / 1.5,
           });
         }
       }

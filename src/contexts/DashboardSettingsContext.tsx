@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback, type ReactNode, useMemo } from 'react';
+import { useState, useCallback, type ReactNode, useMemo } from 'react';
+import { DashboardSettingsContext } from './DashboardContext';
 
 export interface DashboardSettings {
   selectedStationId: string | null;
@@ -11,12 +12,6 @@ export interface DashboardSettingsActions {
   setGlobalDateRange: (range: { start: Date; end: Date; }) => void;
   toggleMapLayer: (layerId: string) => void;
 }
-
-interface DashboardSettingsContextValue extends DashboardSettings {
-  actions: DashboardSettingsActions;
-}
-
-const DashboardSettingsContext = createContext<DashboardSettingsContextValue | undefined>(undefined);
 
 export function DashboardSettingsProvider({ children }: { children: ReactNode }) {
   const [selectedStationId, setSelectedStationIdState] = useState<string | null>(null);
@@ -58,12 +53,4 @@ export function DashboardSettingsProvider({ children }: { children: ReactNode })
       {children}
     </DashboardSettingsContext.Provider>
   );
-}
-
-export function useDashboardSettings() {
-  const context = useContext(DashboardSettingsContext);
-  if (!context) {
-    throw new Error('useDashboardSettings must be used within a DashboardSettingsProvider');
-  }
-  return context;
 }

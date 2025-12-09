@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useEffect } from "react";
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+import { lazy, Suspense, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   ClerkProvider,
@@ -91,17 +92,6 @@ function AppContent() {
   const [authOpen, setAuthOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>("resident");
   const { user, isLoaded, isSignedIn } = useUser();
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-
-  useEffect(() => {
-    if (isLoaded && user) {
-      const hasCompletedOnboarding = user.unsafeMetadata?.onboardingCompleted;
-
-      if (!hasCompletedOnboarding) {
-        setNeedsOnboarding(true);
-      }
-    }
-  }, [isLoaded, user]);
 
   const handleOnboardingComplete = async (role: UserRole) => {
     if (user) {
@@ -112,13 +102,18 @@ function AppContent() {
           onboardingCompleted: true,
         },
       });
-      setNeedsOnboarding(false);
+      // Force re-render or redirect is handled by reactive user object update
+      window.location.reload(); // Simple way to ensure fresh state
     }
   };
 
   if (!isLoaded) return <LoadingSpinner />;
 
-  if (isSignedIn && needsOnboarding) {
+  // Derived state for onboarding
+  const needsOnboarding =
+    isSignedIn && user && !user.unsafeMetadata?.onboardingCompleted;
+
+  if (needsOnboarding) {
     return <OnboardingFlow onComplete={handleOnboardingComplete} />;
   }
 

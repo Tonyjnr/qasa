@@ -10,7 +10,7 @@ class MonitoringStationsService {
 
   constructor() {
     this.api = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || "/api", // Fallback to relative path for proxy
+      baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api", // Explicit fallback
       timeout: 10000,
     });
 
@@ -35,26 +35,24 @@ class MonitoringStationsService {
     if (cached) return cached;
 
     try {
-      // Try fetching from backend first
-      // const response = await this.api.get('/monitoring-stations');
-      // const data = response.data.stations || response.data;
+      // Attempt to fetch from backend
+      console.log("[MonitoringStationsService] Fetching from backend...");
+      const response = await this.api.get('/monitoring-stations');
+      const data = response.data.stations || response.data;
 
-      // if (data && data.length > 0) {
-      //   this.setCache(cacheKey, data);
-      //   return data;
-      // }
+      if (data && Array.isArray(data) && data.length > 0) {
+        console.log(`[MonitoringStationsService] Loaded ${data.length} stations from API`);
+        this.setCache(cacheKey, data);
+        return data;
+      }
 
-      console.log(
-        "[MonitoringStationsService] Backend empty or unavailable, using mock data"
-      );
-      const mockData = this.generateMockStations();
-      this.setCache(cacheKey, mockData);
-      return mockData;
+      throw new Error("Backend returned empty data");
     } catch (error) {
       console.warn(
-        "[MonitoringStationsService] Fetch failed, falling back to mock",
+        "[MonitoringStationsService] Fetch failed or empty, using mock data.",
         error
       );
+      // Fallback to ensure map is never empty during demo
       const mockData = this.generateMockStations();
       this.setCache(cacheKey, mockData);
       return mockData;
