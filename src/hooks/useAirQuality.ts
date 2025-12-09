@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import type { AQIData } from "../types";
+import type { AQIData, Location } from "../types";
 import { fetchAirQuality } from "../services/airQualityService";
 
 // Default fallback (e.g., Lagos)
@@ -19,7 +19,7 @@ export function useAirQuality(
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  const [location, setLocationState] = useState({
+  const [location, setLocationState] = useState<Location>({
     lat: DEFAULT_LAT,
     lng: DEFAULT_LNG,
     name: DEFAULT_NAME,
@@ -103,5 +103,13 @@ export function useAirQuality(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array to run only on mount
 
-  return { data, isLoading, error, refresh, setLocation, lastUpdated };
+  return {
+    data,
+    isLoading,
+    error,
+    refresh,
+    setLocation,
+    location,
+    lastUpdated,
+  };
 }

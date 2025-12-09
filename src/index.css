@@ -138,6 +138,12 @@
   .animate-marquee {
     animation: marquee 50s linear infinite;
   }
+
+  /* Map Marker Styling for AQI */
+  .custom-aqi-marker {
+    background: transparent;
+    border: none;
+  }
 }
 
 @keyframes marquee {

@@ -1,21 +1,20 @@
-import "dotenv/config"; // Load environment variables first
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import cron from "node-cron";
 import axios from "axios";
-import { db } from "../src/db/index.js"; // Note the .js extension for direct execution with tsx/node
-import { aqiTimeSeries, datasets, notifications } from "../src/db/schema.js";
-import { desc } from "drizzle-orm";
+import { db } from "../src/db";
+import { aqiTimeSeries, datasets, notifications, monitoringStations, userAlerts } from "../src/db/schema";
+import { desc, eq, and } from "drizzle-orm";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your Vite dev server
-    credentials: true, // Allow cookies
+    origin: "http://localhost:5173",
+    credentials: true,
   })
 );
 app.use(express.json());
@@ -31,19 +30,7 @@ app.get("/health", (req, res) => {
 // GET /api/datasets
 app.get("/api/datasets", async (req, res) => {
   try {
-    let result = await db.select().from(datasets).orderBy(desc(datasets.uploadedAt));
-    
-    // Seed if empty (Mocking initial data for production readiness feeling)
-    if (result.length === 0) {
-      console.log("🌱 Seeding initial datasets...");
-      await db.insert(datasets).values([
-        { name: "Lagos_Mainland_Q3_2024.csv", size: "2.4 MB", type: "csv", status: "ready" },
-        { name: "Industrial_Zone_PM25_Raw.json", size: "156 KB", type: "json", status: "ready" },
-        { name: "Sensor_Calibration_Logs.pdf", size: "1.1 MB", type: "pdf", status: "processing" },
-      ]);
-      result = await db.select().from(datasets).orderBy(desc(datasets.uploadedAt));
-    }
-    
+    const result = await db.select().from(datasets).orderBy(desc(datasets.uploadedAt));
     res.json(result);
   } catch (error) {
     console.error("Failed to fetch datasets:", error);
@@ -54,34 +41,7 @@ app.get("/api/datasets", async (req, res) => {
 // GET /api/notifications
 app.get("/api/notifications", async (req, res) => {
   try {
-    let result = await db.select().from(notifications).orderBy(desc(notifications.createdAt));
-    
-    // Seed if empty
-    if (result.length === 0) {
-      console.log("🌱 Seeding initial notifications...");
-      await db.insert(notifications).values([
-        {
-          type: "alert",
-          title: "High Pollution Alert",
-          message: "Air quality in Lagos is deteriorating. AQI exceeded 150.",
-          isRead: false,
-        },
-        {
-          type: "info",
-          title: "Weekly Report Ready",
-          message: "Your exposure summary for last week is available.",
-          isRead: true,
-        },
-        {
-          type: "success",
-          title: "Air Quality Improved",
-          message: "AQI has dropped below 50. Good time for outdoor activities.",
-          isRead: true,
-        },
-      ]);
-      result = await db.select().from(notifications).orderBy(desc(notifications.createdAt));
-    }
-    
+    const result = await db.select().from(notifications).orderBy(desc(notifications.createdAt));
     res.json(result);
   } catch (error) {
     console.error("Failed to fetch notifications:", error);
@@ -89,12 +49,84 @@ app.get("/api/notifications", async (req, res) => {
   }
 });
 
+// GET /api/monitoring-stations
+app.get("/api/monitoring-stations", async (req, res) => {
+  try {
+    const stations = await db.select().from(monitoringStations);
+    
+    // Enrich with latest AQI (simplified: just fetching latest time series entry for each)
+    // For production, use a JOIN or a dedicated 'current_conditions' table/cache
+    const enrichedStations = await Promise.all(stations.map(async (station) => {
+      const latest = await db.select()
+        .from(aqiTimeSeries)
+        .where(eq(aqiTimeSeries.monitoringStationId, station.id))
+        .orderBy(desc(aqiTimeSeries.recordedAt))
+        .limit(1);
+        
+      return {
+        ...station,
+        currentAqi: latest.length > 0 ? parseInt(latest[0].aqi) : null,
+        lastUpdated: latest.length > 0 ? latest[0].recordedAt : null
+      };
+    }));
+
+    res.json({ stations: enrichedStations });
+  } catch (error) {
+    console.error("Failed to fetch stations:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// GET /api/alerts
+app.get("/api/alerts", async (req, res) => {
+  try {
+    // In a real app, filter by req.user.id
+    const alerts = await db.select().from(userAlerts);
+    res.json(alerts);
+  } catch (error) {
+    console.error("Failed to fetch alerts:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// POST /api/alerts
+app.post("/api/alerts", async (req, res) => {
+  try {
+    const newAlert = req.body;
+    // Basic validation
+    if (!newAlert.type || !newAlert.threshold) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    
+    const inserted = await db.insert(userAlerts).values({
+      ...newAlert,
+      userId: newAlert.userId || 'demo-user-id', // Fallback for demo
+    }).returning();
+    
+    res.json(inserted[0]);
+  } catch (error) {
+    console.error("Failed to create alert:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// DELETE /api/alerts/:id
+app.delete("/api/alerts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await db.delete(userAlerts).where(eq(userAlerts.id, id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete alert:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 // --- CRON JOB: Fetch AQI hourly ---
-// Fetch for Lagos as a default location to build history
 const LOCATIONS_TO_TRACK = [
   { name: "Lagos", lat: 6.5244, lon: 3.3792 },
-  // Add more locations here
+  { name: "Abuja", lat: 9.0765, lon: 7.3986 },
 ];
 
 const API_KEY = process.env.VITE_OPENWEATHER_API_KEY || process.env.OPENWEATHER_API_KEY;
@@ -109,6 +141,24 @@ cron.schedule("0 * * * *", async () => {
 
   for (const loc of LOCATIONS_TO_TRACK) {
     try {
+      // 1. Get or Create Station
+      let stationId: string;
+      const existing = await db.select().from(monitoringStations).where(eq(monitoringStations.name, loc.name)).limit(1);
+      
+      if (existing.length > 0) {
+        stationId = existing[0].id;
+      } else {
+        const inserted = await db.insert(monitoringStations).values({
+          name: loc.name,
+          lat: loc.lat,
+          lng: loc.lon,
+          country: "NG", // Defaulting for cron
+          source: "OpenWeatherMap"
+        }).returning();
+        stationId = inserted[0].id;
+      }
+
+      // 2. Fetch Data
       const response = await axios.get("https://api.openweathermap.org/data/2.5/air_pollution", {
         params: {
           lat: loc.lat,
@@ -120,12 +170,11 @@ cron.schedule("0 * * * *", async () => {
       const data = response.data.list[0];
       const components = data.components;
       const aqi = data.main.aqi;
-
-      // Map OWM AQI (1-5) to rough standard AQI (0-500) for storage consistency
       const standardAqi = mapOWMAqiToScale(aqi);
 
+      // 3. Insert Time Series
       await db.insert(aqiTimeSeries).values({
-        locationId: loc.name, // or generate a UUID if you have a locations table
+        monitoringStationId: stationId,
         recordedAt: new Date(),
         aqi: String(standardAqi),
         pm25: String(components.pm2_5),
@@ -153,7 +202,6 @@ function mapOWMAqiToScale(owmAqi: number): number {
   };
   return mapping[owmAqi] || 50;
 }
-
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);

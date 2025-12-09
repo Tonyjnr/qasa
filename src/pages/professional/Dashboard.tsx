@@ -10,6 +10,9 @@ import {
   Menu,
   Bell,
   AlertTriangle,
+  Cloud,
+  LineChart,
+  ListOrdered,
 } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { searchLocation } from "../../services/api";
@@ -21,11 +24,15 @@ import { CigaretteWidget } from "../../components/dashboard/CigaretteWidget";
 import { ExerciseAdvisor } from "../../components/dashboard/ExerciseAdvisor";
 import { PollutantGrid } from "../../components/dashboard/PollutantGrid";
 import { ForecastList } from "../../components/dashboard/ForecastList";
-import { InteractiveMap } from "../../components/dashboard/InteractiveMap";
-import { ListView } from "../../components/dashboard/ListView";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { AIAssistant } from "../../components/ai/AIAssistant";
 import { cn } from "../../lib/utils";
+
+// New Feature Components
+import { InteractiveMapProfessional } from "../../components/professional/interactive-map/InteractiveMapProfessional";
+import { WeatherOverview } from "../../components/professional/weather-overview/WeatherOverview";
+import { HistoricalChartsView } from "../../components/professional/historical-charts/HistoricalChartsView";
+import { CityRankingTable } from "../../components/professional/city-ranking/CityRankingTable";
 
 // Tab Content Components
 import { ResearchOverview } from "./ResearchOverview";
@@ -40,15 +47,10 @@ import {
   ResizablePanelGroup,
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "../../components/ui/dialog";
 
 export default function ProfessionalDashboard() {
   // State Management
-  const { data, isLoading, error, setLocation } = useAirQuality({
+  const { data, isLoading, error, setLocation, location } = useAirQuality({
     enablePolling: true,
   });
   const [activeTab, setActiveTab] = useState<string>(
@@ -107,7 +109,10 @@ export default function ProfessionalDashboard() {
 
   // Navigation Items
   const navItems = [
-    { id: "dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { id: "dashboard", icon: LayoutDashboard, label: "Live Monitor" },
+    { id: "weather", icon: Cloud, label: "Weather Overview" },
+    { id: "historical-aqi", icon: LineChart, label: "Historical Trends" },
+    { id: "city-rankings", icon: ListOrdered, label: "City Rankings" },
     { id: "overview", icon: FileText, label: "Research Overview" },
     { id: "risk", icon: Calculator, label: "Risk Calculator" },
     { id: "upload", icon: UploadCloud, label: "Data Upload" },
@@ -301,40 +306,19 @@ export default function ProfessionalDashboard() {
             <ScrollArea className="flex-1">
               <main className="p-4 lg:p-10">
                 {activeTab === "dashboard" && (
-                  <>
+                  <div className="space-y-8 animate-in fade-in duration-500">
                     {/* Map Section */}
-                    <section className="mb-8">
-                      <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 shadow-xl ring-1 ring-gray-200 dark:ring-gray-700 transition-all">
-                        <InteractiveMap
-                          data={data}
-                          onLocationChange={(lat, lng) => {
-                            setLocation(lat, lng);
-                            toast.info("Fetching AQI for new location...");
-                          }}
-                        />
-                        {/* Help / Detailed View Trigger */}
-                        <div className="absolute right-4 top-4 z-[500]">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <button
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-foreground shadow-lg transition-transform hover:scale-110 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
-                                title="Detailed View"
-                              >
-                                <span className="text-lg font-bold">?</span>
-                              </button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-[68vw] h-[90vh] p-0 overflow-hidden bg-background border-border shadow-2xl rounded-3xl">
-                              <div className="h-full w-full overflow-hidden">
-                                <ListView data={data} />
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
+                    <section>
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-xl font-bold text-foreground">
+                          Live Monitoring Network
+                        </h2>
                       </div>
+                      <InteractiveMapProfessional />
                     </section>
 
                     {/* Health Insights */}
-                    <section className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <CigaretteWidget pm25={data.pollutants.pm25} />
                       <ExerciseAdvisor
                         currentAQI={data.aqi}
@@ -347,8 +331,16 @@ export default function ProfessionalDashboard() {
                       <PollutantGrid pollutants={data.pollutants} />
                       <ForecastList forecast={data.forecast} />
                     </div>
-                  </>
+                  </div>
                 )}
+
+                {activeTab === "weather" && (
+                  <WeatherOverview location={location} />
+                )}
+                {activeTab === "historical-aqi" && (
+                  <HistoricalChartsView location={location} />
+                )}
+                {activeTab === "city-rankings" && <CityRankingTable />}
 
                 {activeTab === "overview" && (
                   <ResearchOverview datasets={datasets} />

@@ -5,6 +5,7 @@ import {
   timestamp,
   boolean,
   jsonb,
+  real,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -70,12 +71,26 @@ export const userPreferences = pgTable("user_preferences", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// New table for Monitoring Stations metadata
+export const monitoringStations = pgTable("monitoring_stations", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  lat: real("lat").notNull(),
+  lng: real("lng").notNull(),
+  country: text("country"),
+  city: text("city"),
+  source: text("source"), // e.g., "OpenWeatherMap", "WAQI", "UserUpload"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const aqiTimeSeries = pgTable("aqi_time_series", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  locationId: text("location_id"), // Ideally references saved_locations if we had a dedicated table for that, or just user_id + lat/lng
-  // For simplicity in this phase, we might link to user or just keep it loose
+  monitoringStationId: text("monitoring_station_id") // Renamed from location_id
+    .references(() => monitoringStations.id, { onDelete: "cascade" })
+    .notNull(),
   recordedAt: timestamp("recorded_at").notNull(),
   aqi: text("aqi").notNull(), // keeping flexible or convert to integer
   pm25: text("pm25"),
@@ -91,10 +106,63 @@ export const aqiDailySummary = pgTable("aqi_daily_summary", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  locationId: text("location_id"),
+  monitoringStationId: text("monitoring_station_id") // Renamed from location_id
+    .references(() => monitoringStations.id, { onDelete: "cascade" })
+    .notNull(),
   date: timestamp("date").notNull(),
   aqiAvg: text("aqi_avg"),
   aqiMin: text("aqi_min"),
   aqiMax: text("aqi_max"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// New table for User-defined Alerts
+export const userAlerts = pgTable("user_alerts", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: uuid("user_id")
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  monitoringStationId: text("monitoring_station_id") // Optional, can be for a general location too
+    .references(() => monitoringStations.id, { onDelete: "set null" }),
+  type: text("type", { enum: ["aqi", "pm25", "pm10", "o3", "no2", "so2", "co"] }).notNull(),
+  threshold: real("threshold").notNull(),
+  operator: text("operator", { enum: ["gt", "lt", "eq"] }).notNull(), // greater than, less than, equals
+  isActive: boolean("is_active").default(true).notNull(),
+  notificationMethod: text("notification_method", { enum: ["email", "in_app"] }).default("in_app").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// New table for detailed weather historical data (similar to aqiTimeSeries)
+export const weatherTimeSeries = pgTable("weather_time_series", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  monitoringStationId: text("monitoring_station_id")
+    .references(() => monitoringStations.id, { onDelete: "cascade" })
+    .notNull(),
+  recordedAt: timestamp("recorded_at").notNull(),
+  temperature: real("temperature"),
+  feelsLike: real("feels_like"),
+  humidity: real("humidity"),
+  pressure: real("pressure"),
+  windSpeed: real("wind_speed"),
+  windDeg: real("wind_deg"), // Wind direction in degrees
+  weatherIcon: text("weather_icon"),
+  weatherDescription: text("weather_description"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// New table for aggregated daily weather summary
+export const weatherDailySummary = pgTable("weather_daily_summary", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  monitoringStationId: text("monitoring_station_id")
+    .references(() => monitoringStations.id, { onDelete: "cascade" })
+    .notNull(),
+  date: timestamp("date").notNull(),
+  tempAvg: real("temp_avg"),
+  tempMin: real("temp_min"),
+  tempMax: real("temp_max"),
+  humidityAvg: real("humidity_avg"),
+  windSpeedAvg: real("wind_speed_avg"),
+  weatherDescriptionDominant: text("weather_description_dominant"),
   createdAt: timestamp("created_at").defaultNow(),
 });

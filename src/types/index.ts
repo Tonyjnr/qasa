@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-export type ViewState = "AUTH" | "DASHBOARD";
 export type UserRole = "resident" | "professional";
 
 export interface Location {
@@ -18,10 +16,9 @@ export interface Pollutants {
 }
 
 export interface ForecastItem {
-  [x: string]: ReactNode;
   time: string;
   aqi: number;
-  icon: string;
+  icon: "sun" | "cloud" | "rain"; // simplified
 }
 
 export interface AQIData {
@@ -30,3 +27,8 @@ export interface AQIData {
   pollutants: Pollutants;
   forecast: ForecastItem[];
 }
+
+export * from './maps';
+export * from './weather';
+export * from './historicalData';
+
