@@ -154,242 +154,233 @@ export default function ProfessionalDashboard() {
   if (!data) return null;
 
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="h-screen w-full bg-gray-50 dark:bg-gray-900"
-    >
+    <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <Toaster position="top-center" />
 
-      {/* Left Sidebar */}
-      <ResizablePanel defaultSize={15} minSize={12} maxSize={20}>
-        <aside className="h-full flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <div className="flex h-20 items-center border-b border-gray-200 dark:border-gray-800 px-6">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
-                Pro
-              </div>
-              <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-                Research
-              </span>
+      {/* Left Sidebar - Static */}
+      <aside className="w-64 hidden md:flex flex-col flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="flex h-20 items-center border-b border-gray-200 dark:border-gray-800 px-6">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white font-bold">
+              Pro
             </div>
+            <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+              Research
+            </span>
           </div>
+        </div>
 
-          <ScrollArea className="flex-1">
-            <nav className="space-y-1 p-4">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveTab(item.id)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                    activeTab === item.id
-                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
-                  )}
-                >
-                  <item.icon className="h-4 w-4" /> {item.label}
-                </button>
-              ))}
-            </nav>
-          </ScrollArea>
-        </aside>
-      </ResizablePanel>
-
-      <ResizableHandle
-        withHandle
-        className="bg-gray-200 dark:bg-gray-800 hover:bg-blue-500/20"
-      />
-
-      {/* Main Content Area */}
-      <ResizablePanel defaultSize={60} minSize={40}>
-        <div className="flex flex-1 flex-col h-full bg-gray-50 dark:bg-gray-900">
-          {/* Header */}
-          <header className="flex h-auto flex-col justify-between gap-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-4 md:h-20 md:flex-row md:items-center">
-            <div className="flex items-center gap-4">
+        <ScrollArea className="flex-1">
+          <nav className="space-y-1 p-4">
+            {navItems.map((item) => (
               <button
-                className="lg:hidden p-2 -ml-2 text-gray-500"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-              <div>
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
-                  <span className="text-xs font-bold uppercase tracking-wider">
-                    Dashboard
-                  </span>
-                  <span className="text-xs">›</span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                    Professional
-                  </span>
-                </div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Air Quality Monitor
-                </h1>
-              </div>
-            </div>
-
-            <div className="flex w-full items-center gap-3 md:w-auto">
-              <div className="relative flex-1 md:w-96">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                <input
-                  type="text"
-                  placeholder="Search city..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSearchQuery(val);
-                    if (val.length >= 3) {
-                      searchLocation(val).then((results) => {
-                        setSearchResults(results.slice(0, 5));
-                        setShowSearchResults(true);
-                      });
-                    } else {
-                      setShowSearchResults(false);
-                    }
-                  }}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className={`w-full rounded-full border-none bg-white dark:bg-gray-800 py-3 pl-10 pr-4 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 transition-shadow focus:ring-2 focus:ring-blue-500 ${
-                    isSearching ? "opacity-50" : ""
-                  }`}
-                  disabled={isSearching}
-                />
-                {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
-                    {searchResults.map((result, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() =>
-                          handleLocationSelect(
-                            result.lat,
-                            result.lng,
-                            result.name
-                          )
-                        }
-                        className="w-full border-b border-gray-200 dark:border-gray-700 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900 last:border-b-0"
-                      >
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {result.name}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {result.state ? `${result.state}, ` : ""}
-                          {result.country}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  activeTab === item.id
+                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
                 )}
-              </div>
+              >
+                <item.icon className="h-4 w-4" /> {item.label}
+              </button>
+            ))}
+          </nav>
+        </ScrollArea>
+      </aside>
+
+      {/* Main Content & Right Sidebar Area */}
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        {/* Main Content Area */}
+        <ResizablePanel defaultSize={75} minSize={40}>
+          <div className="flex flex-1 flex-col h-full bg-gray-50 dark:bg-gray-900">
+            {/* Header */}
+            <header className="flex h-auto flex-col justify-between gap-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-4 md:h-20 md:flex-row md:items-center">
               <div className="flex items-center gap-4">
-                <button className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
-                  <Bell className="h-5 w-5" />
+                <button className="lg:hidden p-2 -ml-2 text-gray-500">
+                  <Menu className="h-6 w-6" />
                 </button>
-                <UserButton
-                  appearance={{
-                    baseTheme: dark,
-                    elements: {
-                      userButtonPopoverFooter: "hidden",
-                    },
-                  }}
-                  userProfileProps={{
-                    appearance: {
+                <div>
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 mb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider">
+                      Dashboard
+                    </span>
+                    <span className="text-xs">›</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                      Professional
+                    </span>
+                  </div>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    Air Quality Monitor
+                  </h1>
+                </div>
+              </div>
+
+              <div className="flex w-full items-center gap-3 md:w-auto">
+                <div className="relative flex-1 md:w-96">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Search city..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSearchQuery(val);
+                      if (val.length >= 3) {
+                        searchLocation(val).then((results) => {
+                          setSearchResults(results.slice(0, 5));
+                          setShowSearchResults(true);
+                        });
+                      } else {
+                        setShowSearchResults(false);
+                      }
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    className={`w-full rounded-full border-none bg-white dark:bg-gray-800 py-3 pl-10 pr-4 shadow-sm ring-1 ring-gray-200 dark:ring-gray-700 transition-shadow focus:ring-2 focus:ring-blue-500 ${
+                      isSearching ? "opacity-50" : ""
+                    }`}
+                    disabled={isSearching}
+                  />
+                  {showSearchResults && searchResults.length > 0 && (
+                    <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+                      {searchResults.map((result, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() =>
+                            handleLocationSelect(
+                              result.lat,
+                              result.lng,
+                              result.name
+                            )
+                          }
+                          className="w-full border-b border-gray-200 dark:border-gray-700 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-900 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {result.name}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {result.state ? `${result.state}, ` : ""}
+                            {result.country}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-4">
+                  <button className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
+                    <Bell className="h-5 w-5" />
+                  </button>
+                  <UserButton
+                    appearance={{
                       baseTheme: dark,
                       elements: {
-                        rootBox: "overflow-hidden",
-                        card: "overflow-hidden",
-                        scrollBox: "overflow-hidden",
-                        footer: "hidden",
-                        footerAction: "hidden",
-                        navbarMobileMenuFooter: "hidden",
+                        userButtonPopoverFooter: "hidden",
                       },
-                    },
-                  }}
-                />
+                    }}
+                    userProfileProps={{
+                      appearance: {
+                        baseTheme: dark,
+                        elements: {
+                          rootBox: "overflow-hidden",
+                          card: "overflow-hidden",
+                          scrollBox: "overflow-hidden",
+                          footer: "hidden",
+                          footerAction: "hidden",
+                          navbarMobileMenuFooter: "hidden",
+                        },
+                      },
+                    }}
+                  />
+                </div>
               </div>
-            </div>
-          </header>
+            </header>
 
-          <ScrollArea className="flex-1">
-            <main className="p-4 lg:p-10">
-              {activeTab === "dashboard" && (
-                <>
-                  {/* Map Section */}
-                  <section className="mb-8">
-                    <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 shadow-xl ring-1 ring-gray-200 dark:ring-gray-700 transition-all">
-                      <InteractiveMap
-                        data={data}
-                        onLocationChange={(lat, lng) => {
-                          setLocation(lat, lng);
-                          toast.info("Fetching AQI for new location...");
-                        }}
-                      />
-                      {/* Help / Detailed View Trigger */}
-                      <div className="absolute right-4 top-4 z-[500]">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <button
-                              className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-foreground shadow-lg transition-transform hover:scale-110 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
-                              title="Detailed View"
-                            >
-                              <span className="text-lg font-bold">?</span>
-                            </button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-[68vw] h-[90vh] p-0 overflow-hidden bg-background border-border shadow-2xl rounded-3xl">
-                            <div className="h-full w-full overflow-hidden">
-                              <ListView data={data} />
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+            <ScrollArea className="flex-1">
+              <main className="p-4 lg:p-10">
+                {activeTab === "dashboard" && (
+                  <>
+                    {/* Map Section */}
+                    <section className="mb-8">
+                      <div className="relative h-80 w-full overflow-hidden rounded-2xl bg-gray-100 dark:bg-gray-800 shadow-xl ring-1 ring-gray-200 dark:ring-gray-700 transition-all">
+                        <InteractiveMap
+                          data={data}
+                          onLocationChange={(lat, lng) => {
+                            setLocation(lat, lng);
+                            toast.info("Fetching AQI for new location...");
+                          }}
+                        />
+                        {/* Help / Detailed View Trigger */}
+                        <div className="absolute right-4 top-4 z-[500]">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <button
+                                className="flex h-10 w-10 items-center justify-center rounded-full bg-background text-foreground shadow-lg transition-transform hover:scale-110 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary"
+                                title="Detailed View"
+                              >
+                                <span className="text-lg font-bold">?</span>
+                              </button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-[68vw] h-[90vh] p-0 overflow-hidden bg-background border-border shadow-2xl rounded-3xl">
+                              <div className="h-full w-full overflow-hidden">
+                                <ListView data={data} />
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
                       </div>
+                    </section>
+
+                    {/* Health Insights */}
+                    <section className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <CigaretteWidget pm25={data.pollutants.pm25} />
+                      <ExerciseAdvisor
+                        currentAQI={data.aqi}
+                        forecast={data.forecast}
+                      />
+                    </section>
+
+                    {/* Pollutants & Forecast */}
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                      <PollutantGrid pollutants={data.pollutants} />
+                      <ForecastList forecast={data.forecast} />
                     </div>
-                  </section>
+                  </>
+                )}
 
-                  {/* Health Insights */}
-                  <section className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <CigaretteWidget pm25={data.pollutants.pm25} />
-                    <ExerciseAdvisor
-                      currentAQI={data.aqi}
-                      forecast={data.forecast}
-                    />
-                  </section>
+                {activeTab === "overview" && (
+                  <ResearchOverview datasets={datasets} />
+                )}
+                {activeTab === "risk" && <RiskCalculator data={data} />}
+                {activeTab === "upload" && <DataUpload />}
+                {activeTab === "reports" && <Reports />}
+              </main>
+            </ScrollArea>
+          </div>
+        </ResizablePanel>
 
-                  {/* Pollutants & Forecast */}
-                  <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                    <PollutantGrid pollutants={data.pollutants} />
-                    <ForecastList forecast={data.forecast} />
-                  </div>
-                </>
-              )}
+        <ResizableHandle
+          withHandle
+          className="bg-gray-200 dark:bg-gray-800 hover:bg-blue-500/20"
+        />
 
-              {activeTab === "overview" && (
-                <ResearchOverview datasets={datasets} />
-              )}
-              {activeTab === "risk" && <RiskCalculator data={data} />}
-              {activeTab === "upload" && <DataUpload />}
-              {activeTab === "reports" && <Reports />}
-            </main>
+        {/* Right Sidebar */}
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+          <ScrollArea className="h-full">
+            <Sidebar
+              data={data}
+              isLoading={isLoading}
+              onLocationSelect={handleLocationSelect}
+              className="h-full w-full"
+            />
           </ScrollArea>
-        </div>
-      </ResizablePanel>
-
-      <ResizableHandle
-        withHandle
-        className="bg-gray-200 dark:bg-gray-800 hover:bg-blue-500/20"
-      />
-
-      {/* Right Sidebar */}
-      <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
-        <ScrollArea className="h-full">
-          <Sidebar
-            data={data}
-            isLoading={isLoading}
-            onLocationSelect={handleLocationSelect}
-            className="h-full w-full"
-          />
-        </ScrollArea>
-      </ResizablePanel>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       {/* AI Assistant */}
       <AIAssistant mode="professional" contextData={data} />
-    </ResizablePanelGroup>
+    </div>
   );
 }
