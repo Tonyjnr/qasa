@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/clerk-react";
@@ -78,6 +79,57 @@ export default function ProfessionalDashboard() {
   const [, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+
+  // Debounced Search
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (searchQuery.trim()) {
+        try {
+          setIsSearching(true);
+          const results = await searchLocation(searchQuery);
+          setSearchResults(results);
+          setShowSearchResults(true);
+        } catch (error) {
+          console.error(error);
+          // Silent fail for auto-search to avoid spam
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setShowSearchResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [searchResults]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSearchResults || searchResults.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev + 1) % searchResults.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(
+        (prev) => (prev - 1 + searchResults.length) % searchResults.length
+      );
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (selectedIndex >= 0 && selectedIndex < searchResults.length) {
+        const item = searchResults[selectedIndex];
+        handleLocationSelect(item.lat, item.lng, item.displayName);
+      }
+    } else if (e.key === "Escape") {
+      setShowSearchResults(false);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem("professionalActiveTab", activeTab);
@@ -96,22 +148,6 @@ export default function ProfessionalDashboard() {
       loadDatasets();
     }
   }, [activeTab]);
-
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-
-    setIsSearching(true);
-    try {
-      const results = await searchLocation(searchQuery);
-      setSearchResults(results);
-      setShowSearchResults(true);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to search location");
-    } finally {
-      setIsSearching(false);
-    }
-  };
 
   const handleLocationSelect = (lat: number, lng: number, name: string) => {
     setLocation(lat, lng, name);
@@ -267,31 +303,36 @@ export default function ProfessionalDashboard() {
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSearchResults(e.target.value.length > 0);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch();
-                  } else if (e.key === "Escape") {
-                    setShowSearchResults(false);
-                  }
-                }}
-                onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
                 onBlur={() =>
-                  setTimeout(() => setShowSearchResults(false), 100)
-                } // Delay to allow click on results
+                  setTimeout(() => setShowSearchResults(false), 200)
+                }
                 className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
               />
-              {showSearchResults && searchResults.length > 0 && (
-                <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
-                  <CommandList>
-                    <CommandEmpty>No results found.</CommandEmpty>
+              <div
+                className={cn(
+                  "absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out",
+                  showSearchResults && searchResults.length > 0
+                    ? "opacity-100"
+                    : "opacity-0 pointer-events-none"
+                )}
+                style={{
+                  height:
+                    showSearchResults && searchResults.length > 0
+                      ? Math.min(searchResults.length * 40 + 50, 300)
+                      : 0,
+                }}
+              >
+                <Command>
+                  <CommandList className="max-h-[300px] overflow-y-auto">
+                    {searchResults.length === 0 && (
+                      <CommandEmpty>No results found.</CommandEmpty>
+                    )}
                     <CommandGroup heading="Search Results">
-                      {searchResults.map((item) => (
+                      {searchResults.map((item, index) => (
                         <CommandItem
-                          key={item.lat + item.lng}
+                          key={item.lat + "" + item.lng}
                           onSelect={() =>
                             handleLocationSelect(
                               item.lat,
@@ -299,7 +340,19 @@ export default function ProfessionalDashboard() {
                               item.displayName
                             )
                           }
-                          className="cursor-pointer"
+                          className={cn(
+                            "cursor-pointer",
+                            selectedIndex === index &&
+                              "bg-accent text-accent-foreground"
+                          )}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleLocationSelect(
+                              item.lat,
+                              item.lng,
+                              item.displayName
+                            );
+                          }}
                         >
                           {item.displayName}
                         </CommandItem>
@@ -307,7 +360,7 @@ export default function ProfessionalDashboard() {
                     </CommandGroup>
                   </CommandList>
                 </Command>
-              )}
+              </div>
             </div>
             {renderContent()}
           </main>
@@ -389,31 +442,36 @@ export default function ProfessionalDashboard() {
                     type="text"
                     placeholder="Search city..."
                     value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSearchResults(e.target.value.length > 0);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSearch();
-                      } else if (e.key === "Escape") {
-                        setShowSearchResults(false);
-                      }
-                    }}
-                    onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     onBlur={() =>
-                      setTimeout(() => setShowSearchResults(false), 100)
-                    } // Delay to allow click on results
+                      setTimeout(() => setShowSearchResults(false), 200)
+                    }
                     className="w-full rounded-full border border-input bg-background py-2 pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  {showSearchResults && searchResults.length > 0 && (
-                    <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
-                      <CommandList>
-                        <CommandEmpty>No results found.</CommandEmpty>
+                  <div
+                    className={cn(
+                      "absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out",
+                      showSearchResults && searchResults.length > 0
+                        ? "opacity-100"
+                        : "opacity-0 pointer-events-none"
+                    )}
+                    style={{
+                      height:
+                        showSearchResults && searchResults.length > 0
+                          ? Math.min(searchResults.length * 40 + 50, 300)
+                          : 0,
+                    }}
+                  >
+                    <Command>
+                      <CommandList className="max-h-[300px] overflow-y-auto">
+                        {searchResults.length === 0 && (
+                          <CommandEmpty>No results found.</CommandEmpty>
+                        )}
                         <CommandGroup heading="Search Results">
-                          {searchResults.map((item) => (
+                          {searchResults.map((item, index) => (
                             <CommandItem
-                              key={item.lat + item.lng}
+                              key={item.lat + "" + item.lng}
                               onSelect={() =>
                                 handleLocationSelect(
                                   item.lat,
@@ -421,7 +479,19 @@ export default function ProfessionalDashboard() {
                                   item.displayName
                                 )
                               }
-                              className="cursor-pointer"
+                              className={cn(
+                                "cursor-pointer",
+                                selectedIndex === index &&
+                                  "bg-accent text-accent-foreground"
+                              )}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleLocationSelect(
+                                  item.lat,
+                                  item.lng,
+                                  item.displayName
+                                );
+                              }}
                             >
                               {item.displayName}
                             </CommandItem>
@@ -429,7 +499,7 @@ export default function ProfessionalDashboard() {
                         </CommandGroup>
                       </CommandList>
                     </Command>
-                  )}
+                  </div>
                 </div>
                 <ThemeToggle />
                 <button className="relative rounded-full p-2 text-muted-foreground hover:bg-accent">
