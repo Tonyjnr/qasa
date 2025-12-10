@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import { AqiStationMarker } from "./AqiStationMarker";
 import { PollutionLayer } from "./PollutionLayer";
-import { MapControls } from "./MapControls"; // Import the new component
+import { MapControls } from "./MapControls";
 import { useMonitoringStations } from "../../../hooks/useMonitoringStations";
 import { Loader2 } from "lucide-react";
 import type { MonitoringStation } from "../../../types/maps";
@@ -11,20 +11,27 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
+// Component to handle map flying when center prop changes
 const MapController = ({ center }: { center?: [number, number] }) => {
   const map = useMap();
   useEffect(() => {
     if (center) {
-      map.flyTo(center, 10);
+      map.flyTo(center, 10, {
+        animate: true,
+        duration: 1.5
+      });
     }
   }, [center, map]);
   return null;
 };
 
-export const InteractiveMapProfessional = () => {
+interface InteractiveMapProfessionalProps {
+  center?: [number, number];
+}
+
+export const InteractiveMapProfessional = ({ center }: InteractiveMapProfessionalProps) => {
   const [activeLayer, setActiveLayer] = useState<string | null>(null);
-  const [selectedStation, setSelectedStation] =
-    useState<MonitoringStation | null>(null);
+  const [selectedStation, setSelectedStation] = useState<MonitoringStation | null>(null);
 
   const { data: stations, isLoading } = useMonitoringStations();
 
@@ -32,12 +39,17 @@ export const InteractiveMapProfessional = () => {
     setActiveLayer((prev) => (prev === layer ? null : layer));
   };
 
+  // Determine effective center: either selected station or prop passed from search
+  const effectiveCenter = selectedStation 
+    ? [selectedStation.lat, selectedStation.lng] as [number, number]
+    : center;
+
   return (
-    <div className="relative h-[600px] w-full rounded-xl overflow-hidden border border-border bg-muted">
+    <div className="relative h-[600px] w-full rounded-xl overflow-hidden border border-border bg-muted z-0"> {/* Low z-index here */}
       <MapContainer
-        center={[6.5244, 3.3792]} // Default to Lagos
+        center={center || [6.5244, 3.3792]} 
         zoom={6}
-        className="h-full w-full"
+        className="h-full w-full z-0" // Ensure map internal z-index doesn't overlay dropdowns
         scrollWheelZoom={true}
       >
         <TileLayer
@@ -57,23 +69,16 @@ export const InteractiveMapProfessional = () => {
           ))}
         </MarkerClusterGroup>
 
-        <MapController
-          center={
-            selectedStation
-              ? [selectedStation.lat, selectedStation.lng]
-              : undefined
-          }
-        />
+        <MapController center={effectiveCenter} />
       </MapContainer>
 
-      {/* New Modular Controls */}
       <MapControls 
         activeLayer={activeLayer} 
         onLayerChange={toggleLayer} 
       />
 
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-[500]">
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-[100]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}

@@ -43,20 +43,31 @@ export const WeatherOverview = ({ location }: WeatherOverviewProps) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className="h-4 w-4" />
-          <span>{location.name}</span>
+          <span className="font-medium text-foreground">{location.name}</span>
         </div>
         <Button onClick={() => refetch()} variant="ghost" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" /> Refresh
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      {/* Adjusted Grid Layout */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Current Weather - Takes 1 column on large screens */}
+        <div className="xl:col-span-1 h-full">
           <CurrentWeatherCard data={data.current} />
-          <HourlyForecastChart data={data.hourlyForecast} />
         </div>
-        <div className="lg:col-span-1">
-          <DailyForecastList data={data.dailyForecast} />
+
+        {/* Forecast & Trends - Takes 3 columns */}
+        <div className="xl:col-span-3 space-y-6">
+           {/* Hourly Chart extended */}
+          <div className="h-[350px]"> 
+            <HourlyForecastChart data={data.hourlyForecast} />
+          </div>
+          
+          {/* Daily Forecast expanded */}
+          <div className="h-auto">
+            <DailyForecastList data={data.dailyForecast} />
+          </div>
         </div>
       </div>
     </div>

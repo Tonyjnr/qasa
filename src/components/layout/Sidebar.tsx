@@ -183,23 +183,24 @@ export const Sidebar = ({
                 className={cn(
                   "group flex w-full cursor-pointer items-center gap-4 rounded-lg p-2 text-left",
                   "border border-transparent transition-all",
-                  "hover:bg-accent hover:border-border"
+                  "hover:bg-accent hover:text-accent-foreground hover:border-border",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/20"
                 )}
               >
                 <div
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
                     "bg-muted text-muted-foreground",
-                    "group-hover:bg-primary/10 group-hover:text-primary"
+                    "group-hover:bg-primary group-hover:text-primary-foreground"
                   )}
                 >
                   <MapPin className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground group-hover:text-primary">
+                  <p className="text-sm font-medium text-foreground group-hover:text-accent-foreground">
                     {station.name}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-[10px] text-muted-foreground group-hover:text-accent-foreground/70">
                     {station.status}
                   </p>
                 </div>

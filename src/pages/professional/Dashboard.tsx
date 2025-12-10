@@ -27,6 +27,7 @@ import { ForecastList } from "../../components/dashboard/ForecastList";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { AIAssistant } from "../../components/ai/AIAssistant";
 import { cn } from "../../lib/utils";
+import { ThemeToggle } from "../../components/ui/theme-toggle"; // Added
 
 // New Feature Components
 import { InteractiveMapProfessional } from "../../components/professional/interactive-map/InteractiveMapProfessional";
@@ -49,7 +50,6 @@ import {
 import { ScrollArea } from "../../components/ui/scroll-area";
 
 export default function ProfessionalDashboard() {
-  // State Management
   const { data, isLoading, error, setLocation, location } = useAirQuality({
     enablePolling: true,
   });
@@ -63,12 +63,10 @@ export default function ProfessionalDashboard() {
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
 
-  // Persist active tab
   useEffect(() => {
     localStorage.setItem("professionalActiveTab", activeTab);
   }, [activeTab]);
 
-  // Fetch datasets for overview tab
   useEffect(() => {
     if (activeTab === "overview") {
       const loadDatasets = async () => {
@@ -83,7 +81,6 @@ export default function ProfessionalDashboard() {
     }
   }, [activeTab]);
 
-  // Search Handler
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
 
@@ -107,7 +104,7 @@ export default function ProfessionalDashboard() {
     toast.success(`Location changed to ${name}`);
   };
 
-  // Navigation Items
+  // ... (navItems remain same)
   const navItems = [
     { id: "dashboard", icon: LayoutDashboard, label: "Live Monitor" },
     { id: "weather", icon: Cloud, label: "Weather Overview" },
@@ -119,7 +116,6 @@ export default function ProfessionalDashboard() {
     { id: "reports", icon: FileText, label: "Reports" },
   ];
 
-  // Loading State
   if (isLoading && !data) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -128,7 +124,6 @@ export default function ProfessionalDashboard() {
     );
   }
 
-  // Error State
   if (error) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -155,14 +150,13 @@ export default function ProfessionalDashboard() {
     );
   }
 
-  // Should not happen if data is loaded, but for type safety
   if (!data) return null;
 
   return (
     <div className="flex h-screen w-full bg-gray-50 dark:bg-gray-900 overflow-hidden">
       <Toaster position="top-center" />
 
-      {/* Left Sidebar - Static */}
+      {/* Left Sidebar */}
       <aside className="w-64 hidden md:flex flex-col flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <div className="flex h-20 items-center border-b border-gray-200 dark:border-gray-800 px-6">
           <div className="flex items-center gap-2">
@@ -195,9 +189,7 @@ export default function ProfessionalDashboard() {
         </ScrollArea>
       </aside>
 
-      {/* Main Content & Right Sidebar Area */}
       <ResizablePanelGroup direction="horizontal" className="flex-1">
-        {/* Main Content Area */}
         <ResizablePanel defaultSize={75} minSize={40}>
           <div className="flex flex-1 flex-col h-full bg-gray-50 dark:bg-gray-900">
             {/* Header */}
@@ -248,7 +240,7 @@ export default function ProfessionalDashboard() {
                     disabled={isSearching}
                   />
                   {showSearchResults && searchResults.length > 0 && (
-                    <div className="absolute top-full z-50 mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
+                    <div className="absolute top-full z-[999] mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg">
                       {searchResults.map((result, idx) => (
                         <button
                           key={idx}
@@ -274,6 +266,7 @@ export default function ProfessionalDashboard() {
                   )}
                 </div>
                 <div className="flex items-center gap-4">
+                  <ThemeToggle /> {/* Added ThemeToggle */}
                   <button className="relative rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
                     <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-gray-900" />
                     <Bell className="h-5 w-5" />
@@ -283,19 +276,6 @@ export default function ProfessionalDashboard() {
                       baseTheme: dark,
                       elements: {
                         userButtonPopoverFooter: "hidden",
-                      },
-                    }}
-                    userProfileProps={{
-                      appearance: {
-                        baseTheme: dark,
-                        elements: {
-                          rootBox: "overflow-hidden",
-                          card: "overflow-hidden",
-                          scrollBox: "overflow-hidden",
-                          footer: "hidden",
-                          footerAction: "hidden",
-                          navbarMobileMenuFooter: "hidden",
-                        },
                       },
                     }}
                   />
@@ -314,8 +294,15 @@ export default function ProfessionalDashboard() {
                           Live Monitoring Network
                         </h2>
                       </div>
-                      <InteractiveMapProfessional />
+                      {/* Pass current location to map */}
+                      <InteractiveMapProfessional center={[location.lat, location.lng]} />
                     </section>
+
+                    {/* Pollutants & Forecast (Reordered above Health) */}
+                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                      <PollutantGrid pollutants={data.pollutants} />
+                      <ForecastList forecast={data.forecast} />
+                    </div>
 
                     {/* Health Insights */}
                     <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -325,12 +312,6 @@ export default function ProfessionalDashboard() {
                         forecast={data.forecast}
                       />
                     </section>
-
-                    {/* Pollutants & Forecast */}
-                    <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                      <PollutantGrid pollutants={data.pollutants} />
-                      <ForecastList forecast={data.forecast} />
-                    </div>
                   </div>
                 )}
 
@@ -358,7 +339,6 @@ export default function ProfessionalDashboard() {
           className="bg-gray-200 dark:bg-gray-800 hover:bg-blue-500/20"
         />
 
-        {/* Right Sidebar */}
         <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
           <ScrollArea className="h-full">
             <Sidebar
@@ -371,7 +351,6 @@ export default function ProfessionalDashboard() {
         </ResizablePanel>
       </ResizablePanelGroup>
 
-      {/* AI Assistant */}
       <AIAssistant mode="professional" contextData={data} />
     </div>
   );
