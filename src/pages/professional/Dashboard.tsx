@@ -47,6 +47,7 @@ import {
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "../../components/ui/command";
 
 export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
@@ -62,8 +63,6 @@ export default function ProfessionalDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
-  // Only used on mobile to toggle a drawer if you wanted one, but we removed sidebar
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); 
 
   useEffect(() => {
     localStorage.setItem("professionalActiveTab", activeTab);
@@ -259,10 +258,39 @@ export default function ProfessionalDashboard() {
                             type="text"
                             placeholder="Search..."
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                            onChange={(e) => {
+                              setSearchQuery(e.target.value);
+                              setShowSearchResults(e.target.value.length > 0);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleSearch();
+                              } else if (e.key === "Escape") {
+                                setShowSearchResults(false);
+                              }
+                            }}
+                            onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                            onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
                             className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                         />
+                        {showSearchResults && searchResults.length > 0 && (
+                          <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
+                            <CommandList>
+                              <CommandEmpty>No results found.</CommandEmpty>
+                              <CommandGroup heading="Search Results">
+                                {searchResults.map((item) => (
+                                  <CommandItem
+                                    key={item.lat + item.lng}
+                                    onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
+                                    className="cursor-pointer"
+                                  >
+                                    {item.displayName}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        )}
                     </div>
                     {renderContent()}
                 </main>
@@ -341,10 +369,39 @@ export default function ProfessionalDashboard() {
                     type="text"
                     placeholder="Search city..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchResults(e.target.value.length > 0);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch();
+                      } else if (e.key === "Escape") {
+                        setShowSearchResults(false);
+                      }
+                    }}
+                    onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                    onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
                     className="w-full rounded-full border border-input bg-background py-2 pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
+                  {showSearchResults && searchResults.length > 0 && (
+                    <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
+                      <CommandList>
+                        <CommandEmpty>No results found.</CommandEmpty>
+                        <CommandGroup heading="Search Results">
+                          {searchResults.map((item) => (
+                            <CommandItem
+                              key={item.lat + item.lng}
+                              onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
+                              className="cursor-pointer"
+                            >
+                              {item.displayName}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  )}
                 </div>
                 <ThemeToggle />
                 <button className="relative rounded-full p-2 text-muted-foreground hover:bg-accent">

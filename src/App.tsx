@@ -11,6 +11,7 @@ import { AuthDialog } from "./components/auth/AuthDialog";
 import { OnboardingFlow } from "./components/onboarding/OnboardingFlow";
 import { MetadataManager } from "./components/shared/MetadataManager"; // Import here
 import { ThemeProvider } from "./contexts/ThemeProvider";
+import APIDebugChecker from "./components/APIDebugChecker"; // Add this import
 import type { UserRole } from "./types";
 
 // ... (Lazy imports remain the same)
@@ -64,6 +65,7 @@ function ProtectedRoutes() {
 
   return (
     <Routes>
+      <Route path="/debug" element={<APIDebugChecker />} />
       {/* Resident Routes */}
       {role === "resident" && (
         <>

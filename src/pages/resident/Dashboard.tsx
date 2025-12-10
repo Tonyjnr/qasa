@@ -1,4 +1,4 @@
-import { Search, Bell, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Search, Bell, AlertTriangle } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { UserButton } from "@clerk/clerk-react";
@@ -34,6 +34,7 @@ import {
   ResizablePanelGroup,
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
+import { Command, CommandList, CommandEmpty, CommandGroup, CommandItem } from "../../components/ui/command";
 
 export const Dashboard = () => {
   const { data, isLoading, error, refresh, setLocation } = useAirQuality({
@@ -261,10 +262,39 @@ export const Dashboard = () => {
                   type="text"
                   placeholder="Search city..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchResults(e.target.value.length > 0);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    } else if (e.key === "Escape") {
+                      setShowSearchResults(false);
+                    }
+                  }}
+                  onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                  onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
                   className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
+                {showSearchResults && searchResults.length > 0 && (
+                  <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
+                    <CommandList>
+                      <CommandEmpty>No results found.</CommandEmpty>
+                      <CommandGroup heading="Search Results">
+                        {searchResults.map((item) => (
+                          <CommandItem
+                            key={item.lat + item.lng}
+                            onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
+                            className="cursor-pointer"
+                          >
+                            {item.displayName}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                )}
             </div>
         </header>
         <ScrollArea className="flex-1">
@@ -297,10 +327,39 @@ export const Dashboard = () => {
                     type="text"
                     placeholder="Search city..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchResults(e.target.value.length > 0);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearch();
+                      } else if (e.key === "Escape") {
+                        setShowSearchResults(false);
+                      }
+                    }}
+                    onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                    onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
                     className="w-full rounded-full border-none bg-accent/20 py-2.5 pl-10 pr-4 shadow-sm ring-1 ring-border focus:ring-2 focus:ring-primary"
                     />
+                    {showSearchResults && searchResults.length > 0 && (
+                      <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
+                        <CommandList>
+                          <CommandEmpty>No results found.</CommandEmpty>
+                          <CommandGroup heading="Search Results">
+                            {searchResults.map((item) => (
+                              <CommandItem
+                                key={item.lat + item.lng}
+                                onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
+                                className="cursor-pointer"
+                              >
+                                {item.displayName}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    )}
                 </div>
              </div>
           </header>

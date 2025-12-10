@@ -1,9 +1,8 @@
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { AQIData, Location } from "../types";
 import { fetchAirQuality } from "../services/airQualityService";
 
-// Default fallback (e.g., Lagos)
+// Default fallback (Lagos)
 const DEFAULT_LAT = 6.5244;
 const DEFAULT_LNG = 3.3792;
 const DEFAULT_NAME = "Lagos, NG";
@@ -19,7 +18,7 @@ export function useAirQuality(
   const [data, setData] = useState<AQIData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date(0)); // Initialize with old date
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date(0));
 
   const [location, setLocationState] = useState<Location>({
     lat: DEFAULT_LAT,
@@ -27,26 +26,45 @@ export function useAirQuality(
     name: DEFAULT_NAME,
   });
 
-  // Use ref to keep track of latest location without triggering re-renders in effect
   const locationRef = useRef(location);
+  const isFetchingRef = useRef(false);
+
   useEffect(() => {
     locationRef.current = location;
   }, [location]);
 
   const refresh = useCallback(
-    async (overrideLat?: number, overrideLng?: number) => {
+    async (
+      overrideLat?: number,
+      overrideLng?: number,
+      overrideName?: string
+    ) => {
+      // Prevent multiple simultaneous fetches
+      if (isFetchingRef.current) {
+        console.log("[useAirQuality] Fetch already in progress, skipping...");
+        return;
+      }
+
+      isFetchingRef.current = true;
       setIsLoading(true);
       setError(null);
+
       const targetLat = overrideLat ?? locationRef.current.lat;
       const targetLng = overrideLng ?? locationRef.current.lng;
+      const targetName = overrideName ?? locationRef.current.name;
+
+      console.log(
+        `[useAirQuality] Fetching for: ${targetLat}, ${targetLng}, ${targetName}`
+      );
 
       try {
-        const result = await fetchAirQuality(
-          targetLat,
-          targetLng,
-          overrideLat ? "Unknown" : locationRef.current.name
-        );
+        const result = await fetchAirQuality(targetLat, targetLng, targetName);
+
+        console.log("[useAirQuality] Fetch successful:", result);
         setData(result);
+        setLastUpdated(new Date());
+
+        // Update location state if overriding
         if (overrideLat && overrideLng) {
           setLocationState({
             lat: targetLat,
@@ -54,52 +72,98 @@ export function useAirQuality(
             name: result.location.name,
           });
         }
-        setLastUpdated(new Date());
       } catch (err) {
-        console.error(err);
-        setError(
+        console.error("[useAirQuality] Fetch failed:", err);
+        const errorMessage =
           err instanceof Error
             ? err.message
-            : "Failed to load air quality data."
-        );
+            : "Failed to load air quality data. Please check your internet connection.";
+        setError(errorMessage);
       } finally {
         setIsLoading(false);
+        isFetchingRef.current = false;
       }
     },
     []
   );
 
-  const setLocation = (lat: number, lng: number, name?: string) => {
-    setLocationState({ lat, lng, name: name || "Selected Location" });
-  };
+  const setLocation = useCallback(
+    (lat: number, lng: number, name?: string) => {
+      console.log(`[useAirQuality] Setting location: ${lat}, ${lng}, ${name}`);
+      setLocationState({ lat, lng, name: name || "Selected Location" });
+      // Trigger immediate refresh with new location
+      refresh(lat, lng, name);
+    },
+    [refresh]
+  );
 
   // Initial Fetch & Geolocation
   useEffect(() => {
-    // Initial fetch for default location
-    refresh();
+    let mounted = true;
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          refresh(position.coords.latitude, position.coords.longitude);
-        },
-        (error) => {
-          console.warn("Geolocation access denied or failed:", error);
+    const initializeFetch = async () => {
+      // First, try to get user's geolocation
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            if (mounted) {
+              console.log(
+                "[useAirQuality] Geolocation success:",
+                position.coords
+              );
+              refresh(
+                position.coords.latitude,
+                position.coords.longitude,
+                "Your Location"
+              );
+            }
+          },
+          (geoError) => {
+            console.warn(
+              "[useAirQuality] Geolocation denied/failed:",
+              geoError.message
+            );
+            // Fallback to default location
+            if (mounted) {
+              refresh();
+            }
+          },
+          {
+            timeout: 10000,
+            maximumAge: 300000, // Cache position for 5 minutes
+            enableHighAccuracy: false,
+          }
+        );
+      } else {
+        // No geolocation support, use default
+        console.log(
+          "[useAirQuality] Geolocation not supported, using default location"
+        );
+        if (mounted) {
+          refresh();
         }
-      );
-    }
+      }
+    };
+
+    initializeFetch();
+
+    return () => {
+      mounted = false;
+    };
   }, [refresh]);
 
-  // Polling & Visibility Logic
+  // Polling Logic
   useEffect(() => {
-    if (!props.enablePolling) return;
+    if (!props.enablePolling || !data) return;
 
     let intervalId: NodeJS.Timeout | null = null;
 
     const startPolling = () => {
       if (intervalId) clearInterval(intervalId);
       intervalId = setInterval(() => {
-        refresh();
+        if (!document.hidden) {
+          refresh();
+        }
       }, POLL_INTERVAL);
     };
 
@@ -114,7 +178,6 @@ export function useAirQuality(
       if (document.hidden) {
         stopPolling();
       } else {
-        // If visible, check if we need to refresh immediately
         const now = new Date();
         const timeSinceLastUpdate = now.getTime() - lastUpdated.getTime();
 
@@ -125,7 +188,6 @@ export function useAirQuality(
       }
     };
 
-    // Initial check
     if (!document.hidden) {
       startPolling();
     }
@@ -136,7 +198,7 @@ export function useAirQuality(
       stopPolling();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [props.enablePolling, refresh, lastUpdated]);
+  }, [props.enablePolling, refresh, lastUpdated, data]);
 
   return {
     data,
