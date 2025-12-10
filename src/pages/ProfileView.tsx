@@ -1,5 +1,6 @@
 import { UserProfile } from "@clerk/clerk-react";
 import { RoleToggle } from "../components/profile/RoleToggle";
+import { AlertSettings } from "../components/professional/alerts/AlertSettings";
 import { dark } from "@clerk/themes";
 import { useTheme } from "../contexts/ThemeProvider";
 
@@ -35,6 +36,9 @@ export const ProfileView = () => {
         {/* Custom Settings Column */}
         <div className="space-y-6">
           <RoleToggle />
+          
+          {/* New Alert Settings */}
+          <AlertSettings />
 
           {/* Add more custom settings components here if needed */}
         </div>

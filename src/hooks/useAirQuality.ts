@@ -37,8 +37,6 @@ export function useAirQuality(
     async (overrideLat?: number, overrideLng?: number) => {
       setIsLoading(true);
       setError(null);
-
-      // Use the REF, not the state variable
       const targetLat = overrideLat ?? locationRef.current.lat;
       const targetLng = overrideLng ?? locationRef.current.lng;
 
@@ -48,11 +46,7 @@ export function useAirQuality(
           targetLng,
           overrideLat ? "Unknown" : locationRef.current.name
         );
-
         setData(result);
-        setLastUpdated(new Date());
-
-        // Only update location state if we are overriding (e.g. Geolocation or Search)
         if (overrideLat && overrideLng) {
           setLocationState({
             lat: targetLat,
@@ -60,6 +54,7 @@ export function useAirQuality(
             name: result.location.name,
           });
         }
+        setLastUpdated(new Date());
       } catch (err) {
         console.error(err);
         setError(
@@ -71,7 +66,7 @@ export function useAirQuality(
         setIsLoading(false);
       }
     },
-    [] // <--- MUST BE EMPTY. Do not put [location] here!
+    []
   );
 
   const setLocation = (lat: number, lng: number, name?: string) => {
