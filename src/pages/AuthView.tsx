@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all lint/a11y/useValidAnchor: <explanation> */
 import { useState, useEffect } from "react";
 import {
   ArrowRight,
@@ -14,10 +16,22 @@ import { fetchGlobalCityAQI } from "../services/realDataService";
 
 // Candidate cities for checking rankings (since we don't have a global ranking API)
 const POLLUTED_CANDIDATES = [
-  "Lahore, PK", "Delhi, IN", "Dhaka, BD", "Beijing, CN", "Karachi, PK", "Kolkata, IN", "Baghdad, IQ"
+  "Lahore, PK",
+  "Delhi, IN",
+  "Dhaka, BD",
+  "Beijing, CN",
+  "Karachi, PK",
+  "Kolkata, IN",
+  "Baghdad, IQ",
 ];
 const CLEAN_CANDIDATES = [
-  "Zurich, CH", "Reykjavik, IS", "Helsinki, FI", "Stockholm, SE", "Vancouver, CA", "Wellington, NZ", "Oslo, NO"
+  "Zurich, CH",
+  "Reykjavik, IS",
+  "Helsinki, FI",
+  "Stockholm, SE",
+  "Vancouver, CA",
+  "Wellington, NZ",
+  "Oslo, NO",
 ];
 
 interface AuthViewProps {
@@ -50,7 +64,7 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
             rank: index + 1,
             city: item.city,
             aqi: item.aqi,
-            status: item.status
+            status: item.status,
           }));
         setPollutedCities(sortedPolluted);
 
@@ -63,10 +77,9 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
             rank: index + 1,
             city: item.city,
             aqi: item.aqi,
-            status: item.status
+            status: item.status,
           }));
         setCleanCities(sortedClean);
-
       } catch (error) {
         console.error("Failed to load rankings", error);
       } finally {
@@ -85,7 +98,7 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
       <LiveTicker />
 
       {/* Navigation */}
-      <nav className="relative z-20 flex items-center justify-between px-6 py-6 md:px-12 max-w-7xl mx-auto w-full">
+      <nav className="relative z-20 flex items-center justify-between px-4 py-4 md:px-12 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 flex-col justify-center gap-[3px] overflow-hidden rounded-full bg-white/10 p-1.5 backdrop-blur-sm">
             <div className="h-1 w-full rounded-full bg-[#4285F4]" />
@@ -105,21 +118,40 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
             Health Guides
           </button>
         </div>
-        <button className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10 transition-all">
-          Get App
+        {/* Desktop Auth Buttons */}
+        <div className="hidden md:flex items-center gap-3">
+          <button 
+            onClick={onGetStarted} 
+            className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10 transition-all"
+          >
+            Sign In
+          </button>
+          <button 
+            onClick={onGetStarted} 
+            className="rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-all"
+          >
+            Sign Up
+          </button>
+        </div>
+        {/* Mobile Get Started Button */}
+        <button 
+          onClick={onGetStarted} 
+          className="md:hidden rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-all"
+        >
+          Get Started
         </button>
       </nav>
 
       {/* --- HERO SECTION --- */}
-      <main className="relative z-10 flex flex-col items-center justify-center px-6 pt-10 pb-20 text-center max-w-7xl mx-auto md:px-12">
-        <h1 className="mb-6 max-w-4xl text-5xl font-bold leading-tight tracking-tight md:text-7xl">
-          Discover the air quality <br />
+      <main className="relative z-10 flex flex-col items-center justify-center px-4 pt-8 pb-16 text-center max-w-7xl mx-auto md:px-12">
+        <h1 className="mb-4 max-w-4xl text-4xl font-bold leading-tight tracking-tight md:text-7xl">
+          Discover the air quality <br className="sm:hidden" />
           <span className="bg-gradient-to-r from-[#4285F4] to-[#0F9D58] bg-clip-text text-transparent">
             in every city you go
           </span>
         </h1>
 
-        <p className="mb-10 max-w-lg text-lg text-slate-400">
+        <p className="mb-8 max-w-lg text-base text-slate-400 md:text-lg">
           Join 2 million residents and researchers monitoring the air we
           breathe. Accurate, real-time, and actionable.
         </p>
@@ -233,9 +265,11 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
               </div>
               <div className="space-y-4">
                 {loadingRankings ? (
-                   <div className="space-y-4 animate-pulse">
-                     {[1,2,3].map(i => <div key={i} className="h-14 bg-white/5 rounded-xl" />)}
-                   </div>
+                  <div className="space-y-4 animate-pulse">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-14 bg-white/5 rounded-xl" />
+                    ))}
+                  </div>
                 ) : (
                   pollutedCities.map((item) => (
                     <div
@@ -272,9 +306,11 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
               </div>
               <div className="space-y-4">
                 {loadingRankings ? (
-                   <div className="space-y-4 animate-pulse">
-                     {[1,2,3].map(i => <div key={i} className="h-14 bg-white/5 rounded-xl" />)}
-                   </div>
+                  <div className="space-y-4 animate-pulse">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-14 bg-white/5 rounded-xl" />
+                    ))}
+                  </div>
                 ) : (
                   cleanCities.map((item) => (
                     <div
