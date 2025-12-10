@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
@@ -46,21 +48,34 @@ import {
   ResizablePanelGroup,
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
-import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "../../components/ui/command";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
+  Command,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "../../components/ui/command";
 
 export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
     enablePolling: true,
   });
   const isDesktop = useMediaQuery("(min-width: 1024px)");
-  
+
   const [activeTab, setActiveTab] = useState<string>(
     () => localStorage.getItem("professionalActiveTab") || "dashboard"
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
 
@@ -116,7 +131,8 @@ export default function ProfessionalDashboard() {
     { id: "reports", icon: FileText, label: "Reports" },
   ];
 
-  const currentTabLabel = navItems.find((n) => n.id === activeTab)?.label || "Dashboard";
+  const currentTabLabel =
+    navItems.find((n) => n.id === activeTab)?.label || "Dashboard";
 
   // --- LOADING / ERROR STATES ---
   if (isLoading && !data) {
@@ -166,13 +182,13 @@ export default function ProfessionalDashboard() {
             </div>
             {/* Reduced height for mobile map */}
             <div className="h-[300px] lg:h-[500px] rounded-xl overflow-hidden border border-border shadow-sm">
-                <InteractiveMapProfessional 
+              <InteractiveMapProfessional
                 center={[location.lat, location.lng]}
                 onLocationChange={(lat, lng) => {
-                    setLocation(lat, lng, "Selected Location");
-                    toast.info("Fetching AQI for selected location...");
+                  setLocation(lat, lng, "Selected Location");
+                  toast.info("Fetching AQI for selected location...");
                 }}
-                />
+              />
             </div>
           </section>
 
@@ -183,25 +199,18 @@ export default function ProfessionalDashboard() {
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8">
             <CigaretteWidget pm25={data.pollutants.pm25} />
-            <ExerciseAdvisor
-              currentAQI={data.aqi}
-              forecast={data.forecast}
-            />
+            <ExerciseAdvisor currentAQI={data.aqi} forecast={data.forecast} />
           </section>
         </div>
       )}
 
-      {activeTab === "weather" && (
-        <WeatherOverview location={location} />
-      )}
+      {activeTab === "weather" && <WeatherOverview location={location} />}
       {activeTab === "historical-aqi" && (
         <HistoricalChartsView location={location} />
       )}
       {activeTab === "city-rankings" && <CityRankingTable />}
 
-      {activeTab === "overview" && (
-        <ResearchOverview datasets={datasets} />
-      )}
+      {activeTab === "overview" && <ResearchOverview datasets={datasets} />}
       {activeTab === "risk" && <RiskCalculator data={data} />}
       {activeTab === "upload" && <DataUpload />}
       {activeTab === "reports" && <Reports />}
@@ -211,94 +220,102 @@ export default function ProfessionalDashboard() {
   // --- MOBILE LAYOUT (< 1024px) ---
   if (!isDesktop) {
     return (
-        <div className="flex flex-col h-screen bg-background font-sans text-foreground overflow-hidden">
-            <Toaster position="top-center" />
-            
-            {/* Mobile Header */}
-            <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 shrink-0">
-                <div className="flex items-center gap-2 overflow-hidden">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button className="p-1 -ml-1 text-muted-foreground focus:outline-none">
-                                <Menu className="h-6 w-6" />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-56 ml-2">
-                            <DropdownMenuLabel>Navigation</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            {navItems.map((item) => (
-                                <DropdownMenuItem 
-                                    key={item.id} 
-                                    onClick={() => setActiveTab(item.id)}
-                                    className="cursor-pointer gap-2"
-                                >
-                                    <item.icon className="h-4 w-4" />
-                                    {item.label}
-                                </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    <span className="text-lg font-bold text-foreground truncate">
-                        {currentTabLabel}
-                    </span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <ThemeToggle />
-                    <UserButton appearance={{ baseTheme: dark }} />
-                </div>
-            </header>
+      <div className="flex flex-col h-screen bg-background font-sans text-foreground overflow-hidden">
+        <Toaster position="top-center" />
 
-            {/* Mobile Scroll Area */}
-            <ScrollArea className="flex-1">
-                <main className="p-4 pb-24 bg-background">
-                    {/* Mobile Search */}
-                    <div className="mb-6 relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                              setSearchQuery(e.target.value);
-                              setShowSearchResults(e.target.value.length > 0);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                handleSearch();
-                              } else if (e.key === "Escape") {
-                                setShowSearchResults(false);
-                              }
-                            }}
-                            onFocus={() => setShowSearchResults(searchQuery.length > 0)}
-                            onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
-                            className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                        {showSearchResults && searchResults.length > 0 && (
-                          <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
-                            <CommandList>
-                              <CommandEmpty>No results found.</CommandEmpty>
-                              <CommandGroup heading="Search Results">
-                                {searchResults.map((item) => (
-                                  <CommandItem
-                                    key={item.lat + item.lng}
-                                    onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
-                                    className="cursor-pointer"
-                                  >
-                                    {item.displayName}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        )}
-                    </div>
-                    {renderContent()}
-                </main>
-            </ScrollArea>
-            
-            {/* AI Assistant FAB */}
-            <AIAssistant mode="professional" contextData={data} />
-        </div>
+        {/* Mobile Header */}
+        <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 shrink-0">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 -ml-1 text-muted-foreground focus:outline-none">
+                  <Menu className="h-6 w-6" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 ml-2">
+                <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {navItems.map((item) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)}
+                    className="cursor-pointer gap-2"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className="text-lg font-bold text-foreground truncate">
+              {currentTabLabel}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <UserButton appearance={{ baseTheme: dark }} />
+          </div>
+        </header>
+
+        {/* Mobile Scroll Area */}
+        <ScrollArea className="flex-1">
+          <main className="p-4 pb-24 bg-background">
+            {/* Mobile Search */}
+            <div className="mb-6 relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSearchResults(e.target.value.length > 0);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  } else if (e.key === "Escape") {
+                    setShowSearchResults(false);
+                  }
+                }}
+                onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                onBlur={() =>
+                  setTimeout(() => setShowSearchResults(false), 100)
+                } // Delay to allow click on results
+                className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              {showSearchResults && searchResults.length > 0 && (
+                <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
+                  <CommandList>
+                    <CommandEmpty>No results found.</CommandEmpty>
+                    <CommandGroup heading="Search Results">
+                      {searchResults.map((item) => (
+                        <CommandItem
+                          key={item.lat + item.lng}
+                          onSelect={() =>
+                            handleLocationSelect(
+                              item.lat,
+                              item.lng,
+                              item.displayName
+                            )
+                          }
+                          className="cursor-pointer"
+                        >
+                          {item.displayName}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              )}
+            </div>
+            {renderContent()}
+          </main>
+        </ScrollArea>
+
+        {/* AI Assistant FAB */}
+        <AIAssistant mode="professional" contextData={data} />
+      </div>
     );
   }
 
@@ -317,7 +334,10 @@ export default function ProfessionalDashboard() {
               <div className="h-1 w-full rounded-full bg-[#0F9D58]" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">
-              QASA <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1 align-middle">PRO</span>
+              QASA{" "}
+              <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1 align-middle">
+                PRO
+              </span>
             </span>
           </div>
         </div>
@@ -381,7 +401,9 @@ export default function ProfessionalDashboard() {
                       }
                     }}
                     onFocus={() => setShowSearchResults(searchQuery.length > 0)}
-                    onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
+                    onBlur={() =>
+                      setTimeout(() => setShowSearchResults(false), 100)
+                    } // Delay to allow click on results
                     className="w-full rounded-full border border-input bg-background py-2 pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                   {showSearchResults && searchResults.length > 0 && (
@@ -392,7 +414,13 @@ export default function ProfessionalDashboard() {
                           {searchResults.map((item) => (
                             <CommandItem
                               key={item.lat + item.lng}
-                              onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
+                              onSelect={() =>
+                                handleLocationSelect(
+                                  item.lat,
+                                  item.lng,
+                                  item.displayName
+                                )
+                              }
                               className="cursor-pointer"
                             >
                               {item.displayName}
@@ -418,9 +446,7 @@ export default function ProfessionalDashboard() {
             </header>
 
             <ScrollArea className="flex-1">
-              <main className="p-8 dashboard-bg">
-                {renderContent()}
-              </main>
+              <main className="p-8 dashboard-bg">{renderContent()}</main>
             </ScrollArea>
           </div>
         </ResizablePanel>

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 import { Search, Bell, AlertTriangle } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
@@ -34,7 +35,13 @@ import {
   ResizablePanelGroup,
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
-import { Command, CommandList, CommandEmpty, CommandGroup, CommandItem } from "../../components/ui/command";
+import {
+  Command,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "../../components/ui/command";
 
 export const Dashboard = () => {
   const { data, isLoading, error, refresh, setLocation } = useAirQuality({
@@ -45,7 +52,7 @@ export const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
   const handleSearch = async () => {
@@ -143,7 +150,7 @@ export const Dashboard = () => {
 
         <div className="flex items-center gap-2 lg:gap-4">
           <ThemeToggle />
-          
+
           {/* Notifications */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -239,10 +246,7 @@ export const Dashboard = () => {
       {data && (
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8">
           <CigaretteWidget pm25={data.pollutants.pm25} />
-          <ExerciseAdvisor
-            currentAQI={data.aqi}
-            forecast={data.forecast}
-          />
+          <ExerciseAdvisor currentAQI={data.aqi} forecast={data.forecast} />
         </section>
       )}
     </div>
@@ -254,53 +258,59 @@ export const Dashboard = () => {
       <div className="flex flex-col h-screen bg-background font-sans text-foreground">
         <Toaster position="top-center" />
         <header className="px-4 py-3 border-b border-border bg-background">
-            <HeaderContent />
-            {/* Search moved below header title on mobile */}
-            <div className="mt-4 relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search city..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchResults(e.target.value.length > 0);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    } else if (e.key === "Escape") {
-                      setShowSearchResults(false);
-                    }
-                  }}
-                  onFocus={() => setShowSearchResults(searchQuery.length > 0)}
-                  onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
-                  className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-                {showSearchResults && searchResults.length > 0 && (
-                  <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
-                    <CommandList>
-                      <CommandEmpty>No results found.</CommandEmpty>
-                      <CommandGroup heading="Search Results">
-                        {searchResults.map((item) => (
-                          <CommandItem
-                            key={item.lat + item.lng}
-                            onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
-                            className="cursor-pointer"
-                          >
-                            {item.displayName}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                )}
-            </div>
+          <HeaderContent />
+          {/* Search moved below header title on mobile */}
+          <div className="mt-4 relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search city..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSearchResults(e.target.value.length > 0);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearch();
+                } else if (e.key === "Escape") {
+                  setShowSearchResults(false);
+                }
+              }}
+              onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+              onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
+              className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            {showSearchResults && searchResults.length > 0 && (
+              <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
+                <CommandList>
+                  <CommandEmpty>No results found.</CommandEmpty>
+                  <CommandGroup heading="Search Results">
+                    {searchResults.map((item) => (
+                      <CommandItem
+                        key={item.lat + item.lng}
+                        onSelect={() =>
+                          handleLocationSelect(
+                            item.lat,
+                            item.lng,
+                            item.displayName
+                          )
+                        }
+                        className="cursor-pointer"
+                      >
+                        {item.displayName}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            )}
+          </div>
         </header>
         <ScrollArea className="flex-1">
-            <main className="p-3 sm:p-4 bg-background dashboard-bg pb-20">
-                <MainContent />
-            </main>
+          <main className="p-3 sm:p-4 bg-background dashboard-bg pb-20">
+            <MainContent />
+          </main>
         </ScrollArea>
         <AIAssistant mode="resident" contextData={data} />
       </div>
@@ -319,54 +329,62 @@ export const Dashboard = () => {
       <ResizablePanel defaultSize={70} minSize={50}>
         <div className="flex h-full flex-col">
           <header className="flex h-20 items-center justify-between border-b border-border bg-background px-8 py-4">
-             <div className="flex-1 flex justify-between items-center gap-8">
-                <HeaderContent />
-                <div className="relative w-96 hidden md:block">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                    type="text"
-                    placeholder="Search city..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSearchResults(e.target.value.length > 0);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSearch();
-                      } else if (e.key === "Escape") {
-                        setShowSearchResults(false);
-                      }
-                    }}
-                    onFocus={() => setShowSearchResults(searchQuery.length > 0)}
-                    onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
-                    className="w-full rounded-full border-none bg-accent/20 py-2.5 pl-10 pr-4 shadow-sm ring-1 ring-border focus:ring-2 focus:ring-primary"
-                    />
-                    {showSearchResults && searchResults.length > 0 && (
-                      <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
-                        <CommandList>
-                          <CommandEmpty>No results found.</CommandEmpty>
-                          <CommandGroup heading="Search Results">
-                            {searchResults.map((item) => (
-                              <CommandItem
-                                key={item.lat + item.lng}
-                                onSelect={() => handleLocationSelect(item.lat, item.lng, item.displayName)}
-                                className="cursor-pointer"
-                              >
-                                {item.displayName}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    )}
-                </div>
-             </div>
+            <div className="flex-1 flex justify-between items-center gap-8">
+              <HeaderContent />
+              <div className="relative w-96 hidden md:block">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search city..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchResults(e.target.value.length > 0);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    } else if (e.key === "Escape") {
+                      setShowSearchResults(false);
+                    }
+                  }}
+                  onFocus={() => setShowSearchResults(searchQuery.length > 0)}
+                  onBlur={() =>
+                    setTimeout(() => setShowSearchResults(false), 100)
+                  } // Delay to allow click on results
+                  className="w-full rounded-full border-none bg-accent/20 py-2.5 pl-10 pr-4 shadow-sm ring-1 ring-border focus:ring-2 focus:ring-primary"
+                />
+                {showSearchResults && searchResults.length > 0 && (
+                  <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
+                    <CommandList>
+                      <CommandEmpty>No results found.</CommandEmpty>
+                      <CommandGroup heading="Search Results">
+                        {searchResults.map((item) => (
+                          <CommandItem
+                            key={item.lat + item.lng}
+                            onSelect={() =>
+                              handleLocationSelect(
+                                item.lat,
+                                item.lng,
+                                item.displayName
+                              )
+                            }
+                            className="cursor-pointer"
+                          >
+                            {item.displayName}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                )}
+              </div>
+            </div>
           </header>
 
           <ScrollArea className="flex-1">
             <main className="p-10 dashboard-bg">
-                <MainContent />
+              <MainContent />
             </main>
           </ScrollArea>
         </div>
