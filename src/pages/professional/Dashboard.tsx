@@ -1,7 +1,3 @@
-/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
-/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
@@ -54,12 +50,11 @@ export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
     enablePolling: true,
   });
-
+  
   const [activeTab, setActiveTab] = useState<string>(
     () => localStorage.getItem("professionalActiveTab") || "dashboard"
   );
   const [searchQuery, setSearchQuery] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -117,9 +112,7 @@ export default function ProfessionalDashboard() {
     { id: "reports", icon: FileText, label: "Reports" },
   ];
 
-  // Get current tab label
-  const currentTabLabel =
-    navItems.find((n) => n.id === activeTab)?.label || "Dashboard";
+  const currentTabLabel = navItems.find((n) => n.id === activeTab)?.label || "Dashboard";
 
   if (isLoading && !data) {
     return (
@@ -163,17 +156,13 @@ export default function ProfessionalDashboard() {
       <aside className="w-64 hidden md:flex flex-col flex-shrink-0 border-r border-border bg-card">
         <div className="flex h-20 items-center border-b border-border px-6">
           <div className="flex items-center gap-2">
-            {/* QASA Logo Replacement */}
             <div className="flex h-8 w-8 flex-col justify-center gap-[3px] overflow-hidden rounded-full bg-foreground/5 p-1.5 backdrop-blur-sm">
               <div className="h-1 w-full rounded-full bg-[#4285F4]" />
               <div className="h-1 w-[80%] rounded-full bg-[#26A69A]" />
               <div className="h-1 w-full rounded-full bg-[#0F9D58]" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">
-              QASA{" "}
-              <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1 align-middle">
-                PRO
-              </span>
+              QASA <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1 align-middle">PRO</span>
             </span>
           </div>
         </div>
@@ -302,8 +291,12 @@ export default function ProfessionalDashboard() {
                           Live Monitoring Network
                         </h2>
                       </div>
-                      <InteractiveMapProfessional
+                      <InteractiveMapProfessional 
                         center={[location.lat, location.lng]}
+                        onLocationChange={(lat, lng) => {
+                          setLocation(lat, lng, "Selected Location");
+                          toast.info("Fetching AQI for selected location...");
+                        }}
                       />
                     </section>
 
@@ -341,7 +334,10 @@ export default function ProfessionalDashboard() {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle withHandle className="bg-border hover:bg-primary/20" />
+        <ResizableHandle
+          withHandle
+          className="bg-border hover:bg-primary/20"
+        />
 
         <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
           <ScrollArea className="h-full">

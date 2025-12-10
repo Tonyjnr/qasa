@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { useState, useEffect } from "react";
+import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import { AqiStationMarker } from "./AqiStationMarker";
 import { PollutionLayer } from "./PollutionLayer";
@@ -25,11 +25,24 @@ const MapController = ({ center }: { center?: [number, number] }) => {
   return null;
 };
 
+// Component to handle map clicks
+const MapEvents = ({ onLocationChange }: { onLocationChange?: (lat: number, lng: number) => void }) => {
+  useMapEvents({
+    click(e) {
+      if (onLocationChange) {
+        onLocationChange(e.latlng.lat, e.latlng.lng);
+      }
+    },
+  });
+  return null;
+};
+
 interface InteractiveMapProfessionalProps {
   center?: [number, number];
+  onLocationChange?: (lat: number, lng: number) => void;
 }
 
-export const InteractiveMapProfessional: React.FC<InteractiveMapProfessionalProps> = ({ center }) => {
+export const InteractiveMapProfessional = ({ center, onLocationChange }: InteractiveMapProfessionalProps) => {
   const [activeLayer, setActiveLayer] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<MonitoringStation | null>(null);
 
@@ -45,11 +58,11 @@ export const InteractiveMapProfessional: React.FC<InteractiveMapProfessionalProp
     : center;
 
   return (
-    <div className="relative h-[600px] w-full rounded-xl overflow-hidden border border-border bg-muted z-0"> {/* Low z-index here */}
+    <div className="relative h-[600px] w-full rounded-xl overflow-hidden border border-border bg-muted z-0">
       <MapContainer
         center={center || [6.5244, 3.3792]} 
         zoom={6}
-        className="h-full w-full z-0" // Ensure map internal z-index doesn't overlay dropdowns
+        className="h-full w-full z-0"
         scrollWheelZoom={true}
       >
         <TileLayer
@@ -70,6 +83,7 @@ export const InteractiveMapProfessional: React.FC<InteractiveMapProfessionalProp
         </MarkerClusterGroup>
 
         <MapController center={effectiveCenter} />
+        <MapEvents onLocationChange={onLocationChange} />
       </MapContainer>
 
       <MapControls 
