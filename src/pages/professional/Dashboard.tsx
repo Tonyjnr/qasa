@@ -1,4 +1,3 @@
-// ... existing imports
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
@@ -14,9 +13,9 @@ import {
   Cloud,
   LineChart,
   ListOrdered,
-  X,
 } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { searchLocation } from "../../services/api";
 import { toast, Toaster } from "sonner";
 import { apiService, type Dataset } from "../../services/apiService";
@@ -27,7 +26,6 @@ import { ExerciseAdvisor } from "../../components/dashboard/ExerciseAdvisor";
 import { PollutantGrid } from "../../components/dashboard/PollutantGrid";
 import { ForecastList } from "../../components/dashboard/ForecastList";
 import { Sidebar } from "../../components/layout/Sidebar";
-import { NavigationSidebar } from "../../components/layout/NavigationSidebar";
 import { AIAssistant } from "../../components/ai/AIAssistant";
 import { cn } from "../../lib/utils";
 import { ThemeToggle } from "../../components/ui/theme-toggle";
@@ -48,33 +46,24 @@ import {
   ResizablePanelGroup,
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
 
 export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
     enablePolling: true,
   });
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   
   const [activeTab, setActiveTab] = useState<string>(
     () => localStorage.getItem("professionalActiveTab") || "dashboard"
   );
   const [searchQuery, setSearchQuery] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
-  
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // Use useMediaQuery hook instead of inline logic
-  const isDesktop = useMediaQuery("(min-width: 1024px)");
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Only used on mobile to toggle a drawer if you wanted one, but we removed sidebar
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); 
 
   useEffect(() => {
     localStorage.setItem("professionalActiveTab", activeTab);
@@ -117,7 +106,6 @@ export default function ProfessionalDashboard() {
     toast.success(`Location changed to ${name}`);
   };
 
-  // Label lookup
   const navItems = [
     { id: "dashboard", icon: LayoutDashboard, label: "Live Monitor" },
     { id: "weather", icon: Cloud, label: "Weather Overview" },
@@ -131,6 +119,7 @@ export default function ProfessionalDashboard() {
 
   const currentTabLabel = navItems.find((n) => n.id === activeTab)?.label || "Dashboard";
 
+  // --- LOADING / ERROR STATES ---
   if (isLoading && !data) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -165,36 +154,133 @@ export default function ProfessionalDashboard() {
 
   if (!data) return null;
 
-  const MainContent = () => (
-    <main className="p-3 bg-background">
+  // --- RENDER CONTENT HELPER ---
+  const renderContent = () => (
+    <div className="space-y-6 animate-in fade-in duration-500">
       {activeTab === "dashboard" && (
-        <div className="space-y-6 animate-in fade-in duration-500">
-          <div className="rounded-xl overflow-hidden border border-border h-[300px]">
-            <InteractiveMapProfessional 
-              center={[location.lat, location.lng]}
-              onLocationChange={(lat, lng) => setLocation(lat, lng, "Selected")}
+        <div className="space-y-6">
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg lg:text-xl font-bold text-foreground">
+                Live Monitoring Network
+              </h2>
+            </div>
+            {/* Reduced height for mobile map */}
+            <div className="h-[300px] lg:h-[500px] rounded-xl overflow-hidden border border-border shadow-sm">
+                <InteractiveMapProfessional 
+                center={[location.lat, location.lng]}
+                onLocationChange={(lat, lng) => {
+                    setLocation(lat, lng, "Selected Location");
+                    toast.info("Fetching AQI for selected location...");
+                }}
+                />
+            </div>
+          </section>
+
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <PollutantGrid pollutants={data.pollutants} />
+            <ForecastList forecast={data.forecast} />
+          </div>
+
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8">
+            <CigaretteWidget pm25={data.pollutants.pm25} />
+            <ExerciseAdvisor
+              currentAQI={data.aqi}
+              forecast={data.forecast}
             />
-          </div>
-          {/* Compact Grid for Mobile */}
-          <div className="grid grid-cols-1 gap-4">
-             <PollutantGrid pollutants={data.pollutants} />
-             <ForecastList forecast={data.forecast} />
-          </div>
+          </section>
         </div>
       )}
-      {activeTab === "historical-aqi" && <HistoricalChartsView location={location} />}
+
+      {activeTab === "weather" && (
+        <WeatherOverview location={location} />
+      )}
+      {activeTab === "historical-aqi" && (
+        <HistoricalChartsView location={location} />
+      )}
       {activeTab === "city-rankings" && <CityRankingTable />}
+
+      {activeTab === "overview" && (
+        <ResearchOverview datasets={datasets} />
+      )}
       {activeTab === "risk" && <RiskCalculator data={data} />}
-    </main>
+      {activeTab === "upload" && <DataUpload />}
+      {activeTab === "reports" && <Reports />}
+    </div>
   );
 
+  // --- MOBILE LAYOUT (< 1024px) ---
+  if (!isDesktop) {
+    return (
+        <div className="flex flex-col h-screen bg-background font-sans text-foreground overflow-hidden">
+            <Toaster position="top-center" />
+            
+            {/* Mobile Header */}
+            <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 shrink-0">
+                <div className="flex items-center gap-2 overflow-hidden">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="p-1 -ml-1 text-muted-foreground focus:outline-none">
+                                <Menu className="h-6 w-6" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56 ml-2">
+                            <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {navItems.map((item) => (
+                                <DropdownMenuItem 
+                                    key={item.id} 
+                                    onClick={() => setActiveTab(item.id)}
+                                    className="cursor-pointer gap-2"
+                                >
+                                    <item.icon className="h-4 w-4" />
+                                    {item.label}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <span className="text-lg font-bold text-foreground truncate">
+                        {currentTabLabel}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <UserButton appearance={{ baseTheme: dark }} />
+                </div>
+            </header>
+
+            {/* Mobile Scroll Area */}
+            <ScrollArea className="flex-1">
+                <main className="p-4 pb-24 bg-background">
+                    {/* Mobile Search */}
+                    <div className="mb-6 relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                            className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                    </div>
+                    {renderContent()}
+                </main>
+            </ScrollArea>
+            
+            {/* AI Assistant FAB */}
+            <AIAssistant mode="professional" contextData={data} />
+        </div>
+    );
+  }
+
+  // --- DESKTOP LAYOUT (>= 1024px) ---
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden font-sans">
       <Toaster position="top-center" />
 
-      {/* Left Navigation Sidebar - Hidden on Mobile via CSS (already handles hidden md:flex) */}
+      {/* Left Sidebar */}
       <aside className="w-64 hidden lg:flex flex-col flex-shrink-0 border-r border-border bg-card">
-        {/* ... Sidebar Content ... */}
         <div className="flex h-20 items-center border-b border-border px-6">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 flex-col justify-center gap-[3px] overflow-hidden rounded-full bg-foreground/5 p-1.5 backdrop-blur-sm">
@@ -228,141 +314,73 @@ export default function ProfessionalDashboard() {
         </ScrollArea>
       </aside>
 
-      {/* MOBILE LAYOUT (< lg) */}
-      <div className="flex-1 flex flex-col h-full lg:hidden">
-         {/* Mobile Header */}
-         <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4">
-            <div className="flex items-center gap-3">
-               {/* Mobile Menu Trigger would go here */}
-               <h1 className="text-lg font-bold text-foreground truncate">
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        <ResizablePanel defaultSize={75} minSize={40}>
+          <div className="flex flex-1 flex-col h-full bg-background">
+            {/* Header */}
+            <header className="flex h-20 flex-row items-center justify-between gap-4 border-b border-border bg-card px-8">
+              <div>
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <span className="text-xs font-bold uppercase tracking-wider">
+                    Dashboard
+                  </span>
+                  <span className="text-xs">›</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                    {currentTabLabel}
+                  </span>
+                </div>
+                <h1 className="text-2xl font-bold text-foreground">
                   {currentTabLabel}
-               </h1>
-            </div>
-            <div className="flex items-center gap-2">
-               <ThemeToggle />
-               <UserButton appearance={{ baseTheme: dark }} />
-            </div>
-         </header>
+                </h1>
+              </div>
 
-         {/* Mobile Content Area - No Right Sidebar */}
-         <ScrollArea className="flex-1">
-            <main className="p-3 bg-background">
-               {/* Search Bar Mobile */}
-               <div className="mb-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Search city..."
-                      className="w-full rounded-xl border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                      // ... search props
-                    />
-                  </div>
-               </div>
-
-               {/* Render Active Tab Content */}
-               {activeTab === "dashboard" && (
-                  <div className="space-y-6 animate-in fade-in duration-500">
-                    <div className="rounded-xl overflow-hidden border border-border h-[300px]">
-                      <InteractiveMapProfessional 
-                        center={[location.lat, location.lng]}
-                        onLocationChange={(lat, lng) => setLocation(lat, lng, "Selected")}
-                      />
-                    </div>
-                    {/* Compact Grid for Mobile */}
-                    <div className="grid grid-cols-1 gap-4">
-                       <PollutantGrid pollutants={data.pollutants} />
-                       <ForecastList forecast={data.forecast} />
-                    </div>
-                  </div>
-               )}
-               {activeTab === "historical-aqi" && <HistoricalChartsView location={location} />}
-               {activeTab === "city-rankings" && <CityRankingTable />}
-               {activeTab === "risk" && <RiskCalculator data={data} />}
-            </main>
-         </ScrollArea>
-      </div>
-
-      {/* DESKTOP LAYOUT (>= lg) - Keeps Resizable Panels */}
-      <div className="hidden lg:flex flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel defaultSize={75} minSize={40}>
-            <div className="flex flex-1 flex-col h-full bg-background">
-              {/* Desktop Header */}
-              <header className="flex h-20 flex-row items-center justify-between gap-4 border-b border-border bg-card px-8">
-                <div>
-                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                    <span className="text-xs font-bold uppercase tracking-wider">Dashboard</span>
-                    <span className="text-xs">›</span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">{currentTabLabel}</span>
-                  </div>
-                  <h1 className="text-2xl font-bold text-foreground">{currentTabLabel}</h1>
+              <div className="flex items-center gap-4">
+                <div className="relative w-80">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search city..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    className="w-full rounded-full border border-input bg-background py-2 pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
                 </div>
+                <ThemeToggle />
+                <button className="relative rounded-full p-2 text-muted-foreground hover:bg-accent">
+                  <div className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
+                  <Bell className="h-5 w-5" />
+                </button>
+                <UserButton
+                  appearance={{
+                    baseTheme: dark,
+                    elements: { userButtonPopoverFooter: "hidden" },
+                  }}
+                />
+              </div>
+            </header>
 
-                <div className="flex items-center gap-4">
-                   {/* Search & Tools */}
-                   <div className="relative w-80">
-                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <input 
-                        type="text" 
-                        placeholder="Search city..." 
-                        className="w-full rounded-full border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        // ... search handlers
-                      />
-                   </div>
-                   <ThemeToggle />
-                   <UserButton />
-                </div>
-              </header>
-
-              <ScrollArea className="flex-1">
-                <main className="p-8 dashboard-bg">
-                  {/* ... Desktop Content Rendering ... */}
-                  {activeTab === "dashboard" && (
-                    <div className="space-y-8 animate-in fade-in duration-500">
-                      <section>
-                        <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-xl font-bold text-foreground">Live Monitoring Network</h2>
-                        </div>
-                        <InteractiveMapProfessional 
-                          center={[location.lat, location.lng]}
-                          onLocationChange={(lat, lng) => setLocation(lat, lng, "Selected")}
-                        />
-                      </section>
-                      <div className="grid grid-cols-2 xl:grid-cols-2 gap-8">
-                        <PollutantGrid pollutants={data.pollutants} />
-                        <ForecastList forecast={data.forecast} />
-                      </div>
-                      <section className="grid grid-cols-2 gap-8">
-                        <CigaretteWidget pm25={data.pollutants.pm25} />
-                        <ExerciseAdvisor currentAQI={data.aqi} forecast={data.forecast} />
-                      </section>
-                    </div>
-                  )}
-                  {activeTab === "historical-aqi" && <HistoricalChartsView location={location} />}
-                  {activeTab === "city-rankings" && <CityRankingTable />}
-                  {activeTab === "risk" && <RiskCalculator data={data} />}
-                  {/* ... etc */}
-                </main>
-              </ScrollArea>
-            </div>
-          </ResizablePanel>
-
-          <ResizableHandle withHandle className="bg-border hover:bg-primary/20" />
-
-          {/* Right Sidebar - ONLY on Desktop */}
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
-            <ScrollArea className="h-full">
-              <Sidebar
-                data={data}
-                isLoading={isLoading}
-                onLocationSelect={handleLocationSelect}
-                className="h-full w-full"
-              />
+            <ScrollArea className="flex-1">
+              <main className="p-8 dashboard-bg">
+                {renderContent()}
+              </main>
             </ScrollArea>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle className="bg-border hover:bg-primary/20" />
+
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+          <ScrollArea className="h-full">
+            <Sidebar
+              data={data}
+              isLoading={isLoading}
+              onLocationSelect={handleLocationSelect}
+              className="h-full w-full"
+            />
+          </ScrollArea>
+        </ResizablePanel>
+      </ResizablePanelGroup>
 
       <AIAssistant mode="professional" contextData={data} />
     </div>

@@ -1,7 +1,32 @@
-// ... imports
+import { useState, useEffect } from "react";
+import { useHistoricalAqi } from "../../../hooks/useHistoricalAqi";
+import { AqiPollutantLineChart } from "./AqiPollutantLineChart";
+import { DateRangeSelector } from "./DateRangeSelector";
+import { Skeleton } from "../../ui/skeleton";
+import { Card, CardContent } from "../../ui/card";
+import { useMonitoringStations } from "../../../hooks/useMonitoringStations";
+
+interface HistoricalChartsViewProps {
+  location?: { lat: number; lng: number; name: string };
+}
 
 export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) => {
-  // ... existing logic
+  const [stationId, setStationId] = useState<string | null>(null);
+  const [days, setDays] = useState(7);
+  
+  const { data: stations } = useMonitoringStations();
+  
+  useEffect(() => {
+    if (location) {
+      if (stations && stations.length > 0) {
+        setStationId(stations[0].id);
+      } else {
+        setStationId("temp-station-id");
+      }
+    }
+  }, [location, stations]);
+
+  const { data, isLoading, error } = useHistoricalAqi(stationId, days);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500">
@@ -26,8 +51,11 @@ export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) =>
         {isLoading ? (
           <Skeleton className="h-[250px] sm:h-[400px] w-full rounded-2xl" />
         ) : error ? (
-          // ... error state
-          null
+          <Card className="border-destructive/50 bg-destructive/5">
+            <CardContent className="flex items-center justify-center h-[250px] sm:h-[400px] text-destructive">
+              Failed to load historical data.
+            </CardContent>
+          </Card>
         ) : data?.hourly && data.hourly.length > 0 ? (
           // Adjust chart container height for mobile
           <div className="h-[300px] sm:h-[450px]"> 
@@ -37,8 +65,11 @@ export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) =>
              />
           </div>
         ) : (
-          // ... empty state
-          null
+          <Card>
+            <CardContent className="flex items-center justify-center h-[250px] sm:h-[400px] text-muted-foreground">
+              No data available for the selected range.
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
