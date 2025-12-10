@@ -25,7 +25,6 @@ export const PollutantGrid = ({ pollutants }: PollutantGridProps) => {
             title={p.label}
             value={p.val}
             unit={p.unit}
-            // Optional: visual bar as children
             children={
               <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted/20">
                 <div

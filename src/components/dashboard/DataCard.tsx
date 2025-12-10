@@ -9,7 +9,7 @@ export interface DataCardProps {
   unit?: string;
   icon?: ReactNode;
   description?: string;
-  children?: ReactNode; // For custom visualizations like the cigarette emojis
+  children?: ReactNode;
   className?: string;
   trend?: {
     value: number;

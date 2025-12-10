@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   ClerkProvider,
@@ -9,11 +9,10 @@ import {
 import { Toaster } from "sonner";
 import { AuthDialog } from "./components/auth/AuthDialog";
 import { OnboardingFlow } from "./components/onboarding/OnboardingFlow";
-import { MetadataManager } from "./components/shared/MetadataManager"; // Import here
-import { ThemeProvider } from "./contexts/ThemeProvider";
 import type { UserRole } from "./types";
+import { ThemeProvider } from "./contexts/ThemeProvider";
 
-// ... (Lazy imports remain the same)
+// Lazy load pages
 const AuthView = lazy(() =>
   import("./pages/AuthView").then((m) => ({ default: m.AuthView }))
 );
@@ -59,8 +58,42 @@ function LoadingSpinner() {
 }
 
 function ProtectedRoutes() {
-  const { user } = useUser();
-  const role = (user?.unsafeMetadata?.role as string) || "resident";
+  const { user, isLoaded } = useUser();
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [role, setRole] = useState<UserRole>("resident");
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      const userRole = user.unsafeMetadata?.role as UserRole | undefined;
+      const hasCompletedOnboarding = user.unsafeMetadata?.onboardingCompleted;
+
+      if (!hasCompletedOnboarding && !userRole) {
+        setNeedsOnboarding(true);
+      } else {
+        setRole(userRole || "resident");
+      }
+    }
+  }, [isLoaded, user]);
+
+  const handleOnboardingComplete = async (newRole: UserRole) => {
+    if (user) {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          role: newRole,
+          onboardingCompleted: true,
+        },
+      });
+      setRole(newRole);
+      setNeedsOnboarding(false);
+    }
+  };
+
+  if (!isLoaded) return <LoadingSpinner />;
+
+  if (needsOnboarding) {
+    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <Routes>
@@ -92,60 +125,33 @@ function ProtectedRoutes() {
 function AppContent() {
   const [authOpen, setAuthOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>("resident");
-  const { user, isLoaded, isSignedIn } = useUser();
-
-  const handleOnboardingComplete = async (role: UserRole) => {
-    if (user) {
-      await user.update({
-        unsafeMetadata: {
-          ...user.unsafeMetadata,
-          role,
-          onboardingCompleted: true,
-        },
-      });
-      window.location.reload(); // Simple way to ensure fresh state
-    }
-  };
-
-  if (!isLoaded) return <LoadingSpinner />;
-
-  // Derived state for onboarding
-  const needsOnboarding =
-    isSignedIn && user && !user.unsafeMetadata?.onboardingCompleted;
-
-  if (needsOnboarding) {
-    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
-  }
 
   return (
-    <>
-      <MetadataManager /> {/* Add MetadataManager here */}
-      <Suspense fallback={<LoadingSpinner />}>
-        <SignedOut>
-          <Routes>
-            <Route
-              path="*"
-              element={
-                <>
-                  <AuthView
-                    onRoleSelect={setSelectedRole}
-                    onGetStarted={() => setAuthOpen(true)}
-                  />
-                  <AuthDialog
-                    open={authOpen}
-                    onOpenChange={setAuthOpen}
-                    defaultRole={selectedRole}
-                  />
-                </>
-              }
-            />
-          </Routes>
-        </SignedOut>
-        <SignedIn>
-          <ProtectedRoutes />
-        </SignedIn>
-      </Suspense>
-    </>
+    <Suspense fallback={<LoadingSpinner />}>
+      <SignedOut>
+        <Routes>
+          <Route
+            path="*"
+            element={
+              <>
+                <AuthView
+                  onRoleSelect={setSelectedRole}
+                  onGetStarted={() => setAuthOpen(true)}
+                />
+                <AuthDialog
+                  open={authOpen}
+                  onOpenChange={setAuthOpen}
+                  defaultRole={selectedRole}
+                />
+              </>
+            }
+          />
+        </Routes>
+      </SignedOut>
+      <SignedIn>
+        <ProtectedRoutes />
+      </SignedIn>
+    </Suspense>
   );
 }
 
