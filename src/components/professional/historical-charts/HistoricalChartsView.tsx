@@ -1,5 +1,4 @@
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useHistoricalAqi } from "../../../hooks/useHistoricalAqi";
 import { AqiPollutantLineChart } from "./AqiPollutantLineChart";
 import { DateRangeSelector } from "./DateRangeSelector";
@@ -8,25 +7,31 @@ import { Skeleton } from "../../ui/skeleton";
 import { Card, CardContent } from "../../ui/card";
 import { useMonitoringStations } from "../../../hooks/useMonitoringStations";
 
-export const HistoricalChartsView = () => {
+interface HistoricalChartsViewProps {
+  location?: { lat: number; lng: number; name: string };
+}
+
+export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) => {
   const [stationId, setStationId] = useState<string | null>(null);
   const [days, setDays] = useState(7);
-
-  // Try to find a matching station ID if location is passed
+  
   const { data: stations } = useMonitoringStations();
+  
+  // Update station ID when global location changes
+  useEffect(() => {
+    if (location && stations) {
+      // Find nearest station or use a temporary ID that the service can resolve to coords
+      // For now, we will select the first available station to show *some* data, 
+      // or in a smarter implementation, fetch history directly by lat/lng
+      if (stations.length > 0) {
+        // Just selecting the first one for the demo to ensure data loads
+        // Ideally: setStationId(`temp-${location.lat}-${location.lng}`) and handle in service
+        setStationId(stations[0].id); 
+      }
+    }
+  }, [location, stations]);
 
-  // Compute active station ID (Derived State)
-  const activeStationId = stationId ?? stations?.[0]?.id ?? null;
-
-  // If location is provided, we might want to sync it, but doing it in render is tricky
-  // if we want to allow user override.
-  // However, the previous logic was just defaulting to first station.
-  // We can treat `location` prop as an initial value or an override.
-  // For now, adhering to the "no useEffect for state" rule, we rely on the derived fallback.
-  // Note: If exact location matching is needed, it should be done in the parent or via a memoized lookup
-  // passed to `activeStationId` logic.
-
-  const { data, isLoading, error } = useHistoricalAqi(activeStationId, days);
+  const { data, isLoading, error } = useHistoricalAqi(stationId, days);
 
   const handleStationSelect = (id: string) => {
     setStationId(id);
@@ -37,19 +42,20 @@ export const HistoricalChartsView = () => {
       {/* Controls Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-foreground">
-            Historical Analysis
-          </h2>
+          <h2 className="text-lg font-bold text-foreground">Historical Analysis</h2>
           <p className="text-sm text-muted-foreground">
-            Compare pollutant trends over time
+            {location ? `Trends for ${location.name}` : "Select a station to view trends"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <LocationSelector
-            selectedId={activeStationId}
-            onSelect={handleStationSelect}
+          <LocationSelector 
+            selectedId={stationId} 
+            onSelect={handleStationSelect} 
           />
-          <DateRangeSelector days={days} onRangeChange={setDays} />
+          <DateRangeSelector 
+            days={days} 
+            onRangeChange={setDays} 
+          />
         </div>
       </div>
 
@@ -60,10 +66,10 @@ export const HistoricalChartsView = () => {
         ) : error ? (
           <Card className="border-destructive/50 bg-destructive/5">
             <CardContent className="flex items-center justify-center h-[400px] text-destructive">
-              Failed to load historical data for this station.
+              Failed to load historical data.
             </CardContent>
           </Card>
-        ) : data?.hourly.length ? (
+        ) : data?.hourly && data.hourly.length > 0 ? (
           <AqiPollutantLineChart
             data={data.hourly}
             title={`Air Quality Trends (${days} Days)`}

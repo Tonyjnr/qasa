@@ -11,7 +11,12 @@ interface WeatherOverviewProps {
 }
 
 export const WeatherOverview = ({ location }: WeatherOverviewProps) => {
+  // Ensure refetch is destructured
   const { data, isLoading, error, refetch } = useWeather(location);
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
   if (isLoading && !data) {
     return (
@@ -29,7 +34,7 @@ export const WeatherOverview = ({ location }: WeatherOverviewProps) => {
     return (
       <div className="p-8 text-center text-destructive">
         <p>Failed to load weather data.</p>
-        <Button onClick={() => refetch()} variant="outline" className="mt-4">
+        <Button onClick={handleRefresh} variant="outline" className="mt-4">
           Try Again
         </Button>
       </div>
@@ -45,26 +50,23 @@ export const WeatherOverview = ({ location }: WeatherOverviewProps) => {
           <MapPin className="h-4 w-4" />
           <span className="font-medium text-foreground">{location.name}</span>
         </div>
-        <Button onClick={() => refetch()} variant="ghost" size="sm">
+        <Button onClick={handleRefresh} variant="ghost" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" /> Refresh
         </Button>
       </div>
 
-      {/* Adjusted Grid Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Current Weather - Takes 1 column on large screens */}
+        {/* Current Weather - List View */}
         <div className="xl:col-span-1 h-full">
           <CurrentWeatherCard data={data.current} />
         </div>
 
-        {/* Forecast & Trends - Takes 3 columns */}
+        {/* Forecast & Trends */}
         <div className="xl:col-span-3 space-y-6">
-           {/* Hourly Chart extended */}
           <div className="h-[350px]"> 
             <HourlyForecastChart data={data.hourlyForecast} />
           </div>
           
-          {/* Daily Forecast expanded */}
           <div className="h-auto">
             <DailyForecastList data={data.dailyForecast} />
           </div>

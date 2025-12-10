@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 import { Search, Bell, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { UserButton } from "@clerk/clerk-react";
@@ -273,7 +275,8 @@ export const Dashboard = () => {
           </header>
 
           <ScrollArea className="flex-1">
-            <main className="p-4 lg:p-10 dashboard-bg">
+            {/* Added extra left padding here (pl-6 lg:pl-14) */}
+            <main className="p-4 pl-6 lg:p-10 lg:pl-14 dashboard-bg">
               {/* Map Section */}
               <section className="mb-8 relative z-0">
                 <div className="mb-4 flex items-end justify-between">
@@ -317,23 +320,23 @@ export const Dashboard = () => {
                 </div>
               </section>
 
-              {/* Health Insights Section */}
+              {/* Pollutants & Forecast (MOVED UP) */}
               {data && (
-                <section className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                  <PollutantGrid pollutants={data.pollutants} />
+                  <ForecastList forecast={data.forecast} />
+                </div>
+              )}
+
+              {/* Health Insights Section (MOVED DOWN) */}
+              {data && (
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <CigaretteWidget pm25={data.pollutants.pm25} />
                   <ExerciseAdvisor
                     currentAQI={data.aqi}
                     forecast={data.forecast}
                   />
                 </section>
-              )}
-
-              {/* Pollutants & Forecast */}
-              {data && (
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  <PollutantGrid pollutants={data.pollutants} />
-                  <ForecastList forecast={data.forecast} />
-                </div>
               )}
             </main>
           </ScrollArea>

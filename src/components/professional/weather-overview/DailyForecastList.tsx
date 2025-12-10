@@ -12,31 +12,40 @@ export const DailyForecastList = ({ data }: { data: ForecastDaily[] }) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        {/* Headings */}
+        <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <div className="w-24">Date</div>
+          <div className="w-28">Conditions</div>
+          <div className="w-32 text-right">Temp (H/L)</div>
+          <div className="w-16 text-right">Precip</div>
+        </div>
+
+        <div className="space-y-2">
           {data.map((day, i) => (
             <div key={i} className="flex items-center justify-between p-2 hover:bg-accent/50 rounded-lg transition-colors">
               <div className="w-24">
-                <p className="font-medium">{format(new Date(day.date), 'EEE')}</p>
+                <p className="font-medium text-foreground">{format(new Date(day.date), 'EEE')}</p>
                 <p className="text-xs text-muted-foreground">{format(new Date(day.date), 'MMM d')}</p>
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-28">
                 <img 
                   src={`https://openweathermap.org/img/wn/${day.weatherIcon}.png`} 
                   alt={day.weatherDescription}
                   className="h-8 w-8"
                 />
-                <span className="text-xs text-muted-foreground hidden sm:inline-block w-20 capitalize truncate">
+                <span className="text-xs text-muted-foreground capitalize truncate">
                   {day.weatherDescription}
                 </span>
               </div>
 
-              <div className="flex items-center gap-4 text-sm w-32 justify-end">
+              <div className="flex items-center justify-end gap-2 text-sm w-32">
                 <span className="font-bold">{Math.round(day.tempMax)}°</span>
+                <span className="text-xs text-muted-foreground">/</span>
                 <span className="text-muted-foreground">{Math.round(day.tempMin)}°</span>
               </div>
               
-              <div className="text-xs text-blue-500 w-12 text-right">
+              <div className="text-xs font-medium text-blue-500 w-16 text-right">
                 {Math.round((day.precipitationProbability || 0) * 100)}%
               </div>
             </div>
