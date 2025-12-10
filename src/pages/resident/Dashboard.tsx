@@ -64,7 +64,7 @@ export const Dashboard = () => {
   };
 
   const handleLocationSelect = (lat: number, lng: number, name: string) => {
-    setLocation(lat, lng, name); // Fixed: Added name param
+    setLocation(lat, lng);
     setShowSearchResults(false);
     setSearchQuery("");
     toast.success(`Location changed to ${name}`);
@@ -73,8 +73,29 @@ export const Dashboard = () => {
   // --- LOADING STATE ---
   if (isLoading && !data) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+      <div className="flex h-screen w-full flex-col overflow-hidden bg-background lg:flex-row">
+        {/* Left Panel Skeleton */}
+        <main className="flex-1 p-4 lg:p-10 dashboard-bg">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="space-y-4">
+              <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+              <div className="h-10 w-64 rounded bg-muted animate-pulse" />
+            </div>
+            <div className="h-12 w-96 rounded-2xl bg-muted animate-pulse hidden md:block" />
+          </div>
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+            <div className="h-64 rounded-3xl bg-muted animate-pulse" />
+            <div className="h-64 rounded-3xl bg-muted animate-pulse" />
+          </div>
+        </main>
+        {/* Right Panel Skeleton */}
+        <aside className="hidden h-full w-[calc(400px_+_10%)] border-l border-border bg-background p-6 lg:block">
+          <div className="space-y-8">
+            <div className="flex justify-center pt-8">
+              <div className="h-24 w-24 rounded-3xl bg-muted animate-pulse" />
+            </div>
+          </div>
+        </aside>
       </div>
     );
   }
@@ -110,11 +131,11 @@ export const Dashboard = () => {
       <div className="flex items-center justify-between gap-4 w-full">
         <div>
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
-            <span className="text-[10px] uppercase tracking-wider text-blue-500 font-bold">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-blue-500">
               Resident
             </span>
           </div>
-          <h1 className="text-xl lg:text-3xl font-bold text-foreground">
+          <h1 className="text-xl sm:text-3xl font-bold text-foreground">
             Air Quality
           </h1>
         </div>
@@ -165,9 +186,9 @@ export const Dashboard = () => {
   // --- MAIN CONTENT RENDERER ---
   const MainContent = () => (
     <div className="space-y-6">
-      <section className="relative z-0">
-        <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-lg lg:text-xl font-bold text-foreground">
+      <section className="mb-6 sm:mb-8 relative z-0">
+        <div className="mb-3 sm:mb-4 flex items-end justify-between">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground">
             Live Overview
           </h2>
           <div className="flex items-center gap-2 text-[10px] lg:text-xs text-muted-foreground">
@@ -177,7 +198,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Map Container */}
-        <div className="relative h-64 lg:h-80 w-full overflow-hidden rounded-2xl bg-muted shadow-xl ring-1 ring-border transition-all">
+        <div className="relative h-60 sm:h-80 w-full overflow-hidden rounded-2xl bg-muted shadow-xl ring-1 ring-border transition-all">
           <InteractiveMap
             data={data}
             onLocationChange={(lat, lng) => {
@@ -207,7 +228,7 @@ export const Dashboard = () => {
 
       {/* Pollutants & Forecast */}
       {data && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 mb-6">
           <PollutantGrid pollutants={data.pollutants} />
           <ForecastList forecast={data.forecast} />
         </div>
@@ -233,58 +254,21 @@ export const Dashboard = () => {
         <Toaster position="top-center" />
         <header className="px-4 py-3 border-b border-border bg-background">
             <HeaderContent />
-            {/* Mobile Search: Added z-[2000] to be above map layers */}
-            <div className="mt-4 relative z-[2000]">
+            {/* Search moved below header title on mobile */}
+            <div className="mt-4 relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search city..."
                   value={searchQuery}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setSearchQuery(val);
-                    if (val.length >= 3) {
-                      searchLocation(val).then((results) => {
-                        setSearchResults(results.slice(0, 5));
-                        setShowSearchResults(true);
-                      });
-                    } else {
-                      setShowSearchResults(false);
-                    }
-                  }}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
-                
-                {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full z-[2001] mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-border bg-popover text-popover-foreground shadow-lg">
-                    {searchResults.map((result, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() =>
-                          handleLocationSelect(
-                            result.lat,
-                            result.lng,
-                            result.name
-                          )
-                        }
-                        className="w-full border-b border-border px-4 py-3 text-left hover:bg-accent last:border-b-0"
-                      >
-                        <div className="font-medium text-foreground">
-                          {result.name}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {result.state ? `${result.state}, ` : ""}
-                          {result.country}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
             </div>
         </header>
         <ScrollArea className="flex-1">
-            <main className="p-4 bg-background dashboard-bg pb-20">
+            <main className="p-3 sm:p-4 bg-background dashboard-bg pb-20">
                 <MainContent />
             </main>
         </ScrollArea>
@@ -304,56 +288,19 @@ export const Dashboard = () => {
       {/* Left Main Content */}
       <ResizablePanel defaultSize={70} minSize={50}>
         <div className="flex h-full flex-col">
-          {/* Desktop Header: Added z-[2000] to float above map/content */}
-          <header className="relative z-[2000] flex h-20 items-center justify-between border-b border-border bg-background px-8 py-4">
+          <header className="flex h-20 items-center justify-between border-b border-border bg-background px-8 py-4">
              <div className="flex-1 flex justify-between items-center gap-8">
                 <HeaderContent />
                 <div className="relative w-96 hidden md:block">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
-                        type="text"
-                        placeholder="Search city..."
-                        value={searchQuery}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            setSearchQuery(val);
-                            if (val.length >= 3) {
-                            searchLocation(val).then((results) => {
-                                setSearchResults(results.slice(0, 5));
-                                setShowSearchResults(true);
-                            });
-                            } else {
-                            setShowSearchResults(false);
-                            }
-                        }}
-                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        className="w-full rounded-full border-none bg-accent/20 py-2.5 pl-10 pr-4 shadow-sm ring-1 ring-border focus:ring-2 focus:ring-primary"
+                    type="text"
+                    placeholder="Search city..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    className="w-full rounded-full border-none bg-accent/20 py-2.5 pl-10 pr-4 shadow-sm ring-1 ring-border focus:ring-2 focus:ring-primary"
                     />
-                    {showSearchResults && searchResults.length > 0 && (
-                        <div className="absolute top-full z-[2001] mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-border bg-popover text-popover-foreground shadow-lg">
-                            {searchResults.map((result, idx) => (
-                            <button
-                                key={idx}
-                                onClick={() =>
-                                handleLocationSelect(
-                                    result.lat,
-                                    result.lng,
-                                    result.name
-                                )
-                                }
-                                className="w-full border-b border-border px-4 py-3 text-left hover:bg-accent last:border-b-0"
-                            >
-                                <div className="font-medium text-foreground">
-                                {result.name}
-                                </div>
-                                <div className="text-sm text-muted-foreground">
-                                {result.state ? `${result.state}, ` : ""}
-                                {result.country}
-                                </div>
-                            </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
              </div>
           </header>

@@ -46,14 +46,7 @@ import {
   ResizablePanelGroup,
 } from "../../components/ui/resizable";
 import { ScrollArea } from "../../components/ui/scroll-area";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../../components/ui/dropdown-menu";
 
 export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
@@ -69,6 +62,8 @@ export default function ProfessionalDashboard() {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
+  // Only used on mobile to toggle a drawer if you wanted one, but we removed sidebar
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); 
 
   useEffect(() => {
     localStorage.setItem("professionalActiveTab", activeTab);
@@ -220,85 +215,55 @@ export default function ProfessionalDashboard() {
         <div className="flex flex-col h-screen bg-background font-sans text-foreground overflow-hidden">
             <Toaster position="top-center" />
             
-            {/* Mobile Header - Expanded to include Search */}
-            <header className="flex flex-col border-b border-border bg-card px-4 py-3 shrink-0 gap-3">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="p-1 -ml-1 text-muted-foreground focus:outline-none">
-                                    <Menu className="h-6 w-6" />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="w-56 ml-2">
-                                <DropdownMenuLabel>Navigation</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {navItems.map((item) => (
-                                    <DropdownMenuItem 
-                                        key={item.id} 
-                                        onClick={() => setActiveTab(item.id)}
-                                        className="cursor-pointer gap-2"
-                                    >
-                                        <item.icon className="h-4 w-4" />
-                                        {item.label}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <span className="text-lg font-bold text-foreground truncate">
-                            {currentTabLabel}
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <ThemeToggle />
-                        <UserButton appearance={{ baseTheme: dark }} />
-                    </div>
-                </div>
-
-                {/* Mobile Search moved here, outside scroll area and above content */}
-                <div className="relative z-[2000]">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChange={(e) => {
-                            const val = e.target.value;
-                            setSearchQuery(val);
-                            if (val.length >= 3) {
-                              searchLocation(val).then((results) => {
-                                setSearchResults(results.slice(0, 5));
-                                setShowSearchResults(true);
-                              });
-                            } else {
-                              setShowSearchResults(false);
-                            }
-                        }}
-                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                    {showSearchResults && searchResults.length > 0 && (
-                        <div className="absolute top-full left-0 right-0 z-[2001] mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-border bg-popover text-popover-foreground shadow-lg">
-                            {searchResults.map((result, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => handleLocationSelect(result.lat, result.lng, result.name)}
-                                    className="w-full border-b border-border px-4 py-3 text-left hover:bg-accent last:border-b-0"
+            {/* Mobile Header */}
+            <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 shrink-0">
+                <div className="flex items-center gap-2 overflow-hidden">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="p-1 -ml-1 text-muted-foreground focus:outline-none">
+                                <Menu className="h-6 w-6" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56 ml-2">
+                            <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {navItems.map((item) => (
+                                <DropdownMenuItem 
+                                    key={item.id} 
+                                    onClick={() => setActiveTab(item.id)}
+                                    className="cursor-pointer gap-2"
                                 >
-                                    <div className="font-medium text-sm">{result.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {result.state ? `${result.state}, ` : ""}{result.country}
-                                    </div>
-                                </button>
+                                    <item.icon className="h-4 w-4" />
+                                    {item.label}
+                                </DropdownMenuItem>
                             ))}
-                        </div>
-                    )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <span className="text-lg font-bold text-foreground truncate">
+                        {currentTabLabel}
+                    </span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <UserButton appearance={{ baseTheme: dark }} />
                 </div>
             </header>
 
             {/* Mobile Scroll Area */}
             <ScrollArea className="flex-1">
                 <main className="p-4 pb-24 bg-background">
+                    {/* Mobile Search */}
+                    <div className="mb-6 relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                            className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                    </div>
                     {renderContent()}
                 </main>
             </ScrollArea>
@@ -352,8 +317,8 @@ export default function ProfessionalDashboard() {
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={75} minSize={40}>
           <div className="flex flex-1 flex-col h-full bg-background">
-            {/* Header: Added z-[2000] */}
-            <header className="relative z-[2000] flex h-20 items-center justify-between gap-4 border-b border-border bg-card px-8">
+            {/* Header */}
+            <header className="flex h-20 flex-row items-center justify-between gap-4 border-b border-border bg-card px-8">
               <div>
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <span className="text-xs font-bold uppercase tracking-wider">
@@ -376,37 +341,10 @@ export default function ProfessionalDashboard() {
                     type="text"
                     placeholder="Search city..."
                     value={searchQuery}
-                    onChange={(e) => {
-                        const val = e.target.value;
-                        setSearchQuery(val);
-                        if (val.length >= 3) {
-                          searchLocation(val).then((results) => {
-                            setSearchResults(results.slice(0, 5));
-                            setShowSearchResults(true);
-                          });
-                        } else {
-                          setShowSearchResults(false);
-                        }
-                    }}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     className="w-full rounded-full border border-input bg-background py-2 pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
-                  {showSearchResults && searchResults.length > 0 && (
-                    <div className="absolute top-full z-[2001] mt-2 max-h-64 w-full overflow-y-auto rounded-3xl border border-border bg-popover text-popover-foreground shadow-lg">
-                      {searchResults.map((result, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handleLocationSelect(result.lat, result.lng, result.name)}
-                          className="w-full border-b border-border px-4 py-3 text-left hover:bg-accent last:border-b-0"
-                        >
-                          <div className="font-medium">{result.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {result.state ? `${result.state}, ` : ""}{result.country}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </div>
                 <ThemeToggle />
                 <button className="relative rounded-full p-2 text-muted-foreground hover:bg-accent">
@@ -423,7 +361,7 @@ export default function ProfessionalDashboard() {
             </header>
 
             <ScrollArea className="flex-1">
-              <main className="p-8 lg:p-10 dashboard-bg">
+              <main className="p-8 dashboard-bg">
                 {renderContent()}
               </main>
             </ScrollArea>

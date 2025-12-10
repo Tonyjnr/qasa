@@ -19,7 +19,7 @@ export function useAirQuality(
   const [data, setData] = useState<AQIData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date(0));
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date(0)); // Initialize with old date
 
   const [location, setLocationState] = useState<Location>({
     lat: DEFAULT_LAT,
@@ -27,40 +27,33 @@ export function useAirQuality(
     name: DEFAULT_NAME,
   });
 
-  // 1. Ref to track location without triggering loops, but we also need a reactive effect
+  // Use ref to keep track of latest location without triggering re-renders in effect
   const locationRef = useRef(location);
   useEffect(() => {
     locationRef.current = location;
   }, [location]);
 
-  // 2. The core fetch function
   const refresh = useCallback(
-    async (overrideLat?: number, overrideLng?: number, overrideName?: string) => {
+    async (overrideLat?: number, overrideLng?: number) => {
       setIsLoading(true);
       setError(null);
-
-      // Use overrides if provided (e.g. from Geolocation), otherwise use current state
       const targetLat = overrideLat ?? locationRef.current.lat;
       const targetLng = overrideLng ?? locationRef.current.lng;
-      const targetName = overrideName ?? locationRef.current.name;
 
       try {
         const result = await fetchAirQuality(
           targetLat,
           targetLng,
-          targetName
+          overrideLat ? "Unknown" : locationRef.current.name
         );
         setData(result);
-        
-        // If we used overrides (like from Geolocation), update the state to match
-        if (overrideLat !== undefined && overrideLng !== undefined) {
-           setLocationState({
-             lat: targetLat,
-             lng: targetLng,
-             name: result.location.name // Use the name returned from API if available
-           });
+        if (overrideLat && overrideLng) {
+          setLocationState({
+            lat: targetLat,
+            lng: targetLng,
+            name: result.location.name,
+          });
         }
-        
         setLastUpdated(new Date());
       } catch (err) {
         console.error(err);
@@ -73,37 +66,31 @@ export function useAirQuality(
         setIsLoading(false);
       }
     },
-    [] 
+    []
   );
 
-  // 3. Exposed setter that updates state -> triggers effect
-  const setLocation = useCallback((lat: number, lng: number, name?: string) => {
+  const setLocation = (lat: number, lng: number, name?: string) => {
     setLocationState({ lat, lng, name: name || "Selected Location" });
-  }, []);
+  };
 
-  // 4. MAIN TRIGGER: When `location` state changes, fetch new data automatically.
-  // This connects the Search Bar/Map click (which call setLocation) to the Data Fetch.
+  // Initial Fetch & Geolocation
   useEffect(() => {
-    refresh(location.lat, location.lng, location.name);
-  }, [location, refresh]);
+    // Initial fetch for default location
+    refresh();
 
-  // 5. Initial Geolocation (Mount only)
-  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          // This will trigger setLocation -> which triggers the effect above
-          setLocation(position.coords.latitude, position.coords.longitude, "My Location");
+          refresh(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
           console.warn("Geolocation access denied or failed:", error);
         }
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refresh]);
 
-  // 6. Polling Logic
+  // Polling & Visibility Logic
   useEffect(() => {
     if (!props.enablePolling) return;
 
@@ -112,7 +99,7 @@ export function useAirQuality(
     const startPolling = () => {
       if (intervalId) clearInterval(intervalId);
       intervalId = setInterval(() => {
-        refresh(); // refetch current location
+        refresh();
       }, POLL_INTERVAL);
     };
 
@@ -127,8 +114,10 @@ export function useAirQuality(
       if (document.hidden) {
         stopPolling();
       } else {
+        // If visible, check if we need to refresh immediately
         const now = new Date();
         const timeSinceLastUpdate = now.getTime() - lastUpdated.getTime();
+
         if (timeSinceLastUpdate > POLL_INTERVAL) {
           refresh();
         }
@@ -136,6 +125,7 @@ export function useAirQuality(
       }
     };
 
+    // Initial check
     if (!document.hidden) {
       startPolling();
     }
@@ -152,7 +142,7 @@ export function useAirQuality(
     data,
     isLoading,
     error,
-    refresh, // Manually trigger refresh if needed
+    refresh,
     setLocation,
     location,
     lastUpdated,

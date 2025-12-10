@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  /* ... (Keep existing theme variables) ... */
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -42,9 +43,7 @@
 
 @layer base {
   :root {
-    /* ========================================
-       LIGHT MODE - Base Colors
-       ======================================== */
+    /* ... (Keep existing root vars) ... */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -66,23 +65,19 @@
     --ring: 221 83% 53%;
     --radius: 0.75rem;
 
-    /* AQI Colors (HSL) - Modified 'Good' to be darker green */
-    --aqi-good: 158 64% 52%; /* Emerald-500ish base */
+    --aqi-good: 158 64% 52%;
     --aqi-moderate: 45 93% 47%;
     --aqi-unhealthy-sensitive: 25 95% 53%;
     --aqi-unhealthy: 0 72% 51%;
     --aqi-very-unhealthy: 348 83% 47%;
     --aqi-hazardous: 271 91% 65%;
 
-    /* Dashboard Specific */
     --dashboard-bg: 210 40% 98%;
   }
 
   .dark {
-    /* ========================================
-       DARK MODE - Base Colors
-       ======================================== */
-    --background: 222.2 40% 10%; /* Lighter and less saturated than before */
+    /* ... (Keep existing dark vars) ... */
+    --background: 222.2 40% 10%;
     --foreground: 210 40% 98%;
     --card: 217.2 32.6% 17.5%;
     --card-foreground: 210 40% 98%;
@@ -102,7 +97,6 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 213 94% 68%;
 
-    /* AQI Colors (Adjusted for Dark Mode) */
     --aqi-good: 158 64% 52%;
     --aqi-moderate: 45 93% 55%;
     --aqi-unhealthy-sensitive: 25 95% 60%;
@@ -128,29 +122,29 @@
 
   /* --- Custom Global Scrollbar --- */
   ::-webkit-scrollbar {
-    width: 6px;               /* Thin scrollbar */
-    height: 6px;              /* Thin horizontal scrollbar */
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: transparent;  /* Transparent track so it floats over content */
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground) / 0.3); /* Subtle thumb color */
-    border-radius: 9999px;    /* Fully rounded pills */
-    border: 2px solid transparent; /* Creates padding effect inside the track */
+    background-color: hsl(var(--border) / 0.6);
+    border-radius: 20px;
+    border: 2px solid transparent; /* Creates padding effect */
     background-clip: content-box;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--muted-foreground) / 0.5); /* Darker on hover */
+    background-color: hsl(var(--border) / 0.9);
   }
 
-  /* For Firefox */
+  /* Firefox Support */
   * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+    scrollbar-color: hsl(var(--border) / 0.6) transparent;
   }
 }
 
