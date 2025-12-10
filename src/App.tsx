@@ -1,4 +1,3 @@
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import { lazy, Suspense, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
@@ -10,9 +9,11 @@ import {
 import { Toaster } from "sonner";
 import { AuthDialog } from "./components/auth/AuthDialog";
 import { OnboardingFlow } from "./components/onboarding/OnboardingFlow";
+import { MetadataManager } from "./components/shared/MetadataManager"; // Import here
+import { ThemeProvider } from "./contexts/ThemeProvider";
 import type { UserRole } from "./types";
 
-// Lazy load pages
+// ... (Lazy imports remain the same)
 const AuthView = lazy(() =>
   import("./pages/AuthView").then((m) => ({ default: m.AuthView }))
 );
@@ -102,7 +103,6 @@ function AppContent() {
           onboardingCompleted: true,
         },
       });
-      // Force re-render or redirect is handled by reactive user object update
       window.location.reload(); // Simple way to ensure fresh state
     }
   };
@@ -110,43 +110,43 @@ function AppContent() {
   if (!isLoaded) return <LoadingSpinner />;
 
   // Derived state for onboarding
-  const needsOnboarding =
-    isSignedIn && user && !user.unsafeMetadata?.onboardingCompleted;
+  const needsOnboarding = isSignedIn && user && !user.unsafeMetadata?.onboardingCompleted;
 
   if (needsOnboarding) {
     return <OnboardingFlow onComplete={handleOnboardingComplete} />;
   }
 
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <SignedOut>
-        <Routes>
-          <Route
-            path="*"
-            element={
-              <>
-                <AuthView
-                  onRoleSelect={setSelectedRole}
-                  onGetStarted={() => setAuthOpen(true)}
-                />
-                <AuthDialog
-                  open={authOpen}
-                  onOpenChange={setAuthOpen}
-                  defaultRole={selectedRole}
-                />
-              </>
-            }
-          />
-        </Routes>
-      </SignedOut>
-      <SignedIn>
-        <ProtectedRoutes />
-      </SignedIn>
-    </Suspense>
+    <>
+      <MetadataManager /> {/* Add MetadataManager here */}
+      <Suspense fallback={<LoadingSpinner />}>
+        <SignedOut>
+          <Routes>
+            <Route
+              path="*"
+              element={
+                <>
+                  <AuthView
+                    onRoleSelect={setSelectedRole}
+                    onGetStarted={() => setAuthOpen(true)}
+                  />
+                  <AuthDialog
+                    open={authOpen}
+                    onOpenChange={setAuthOpen}
+                    defaultRole={selectedRole}
+                  />
+                </>
+              }
+            />
+          </Routes>
+        </SignedOut>
+        <SignedIn>
+          <ProtectedRoutes />
+        </SignedIn>
+      </Suspense>
+    </>
   );
 }
-
-import { ThemeProvider } from "./contexts/ThemeProvider";
 
 function App() {
   return (
