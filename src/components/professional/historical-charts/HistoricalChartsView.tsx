@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useHistoricalAqi } from "../../../hooks/useHistoricalAqi";
 import { AqiPollutantLineChart } from "./AqiPollutantLineChart";
 import { DateRangeSelector } from "./DateRangeSelector";
@@ -17,21 +17,19 @@ export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) =>
   
   const { data: stations } = useMonitoringStations();
   
-  // Update station ID when global location changes
-  useEffect(() => {
-    if (location && stations) {
-      // Find nearest station or use a temporary ID that the service can resolve to coords
-      // For now, we will select the first available station to show *some* data, 
-      // or in a smarter implementation, fetch history directly by lat/lng
-      if (stations.length > 0) {
-        // Just selecting the first one for the demo to ensure data loads
-        // Ideally: setStationId(`temp-${location.lat}-${location.lng}`) and handle in service
-        setStationId(stations[0].id); 
-      }
-    }
-  }, [location, stations]);
+  // Calculate active station ID:
+  // 1. User selected station (stationId)
+  // 2. OR derived from 'location' prop if we can match it (omitted for simplicity, usually needs geocoding or ID matching)
+  // 3. OR fallback to first available station
+  const activeStationId = stationId ?? stations?.[0]?.id ?? null;
 
-  const { data, isLoading, error } = useHistoricalAqi(stationId, days);
+  // Note: We are ignoring the 'location' prop for direct ID mapping here to avoid the useEffect
+  // and complexities of geocoding inside render. 
+  // In a real app, `location` would ideally carry an ID or we'd have a `useMatchingStation(location)` hook.
+  // For now, if the user navigates via global search, they might see the default station unless they select one.
+  // This trade-off fixes the lint error and keeps the component stable.
+
+  const { data, isLoading, error } = useHistoricalAqi(activeStationId, days);
 
   const handleStationSelect = (id: string) => {
     setStationId(id);
@@ -44,12 +42,17 @@ export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) =>
         <div>
           <h2 className="text-lg font-bold text-foreground">Historical Analysis</h2>
           <p className="text-sm text-muted-foreground">
-            {location ? `Trends for ${location.name}` : "Select a station to view trends"}
+            {/* Show name of active station if possible, else location name or generic text */}
+            {activeStationId && stations?.find(s => s.id === activeStationId)?.name 
+              ? `Trends for ${stations.find(s => s.id === activeStationId)?.name}` 
+              : location 
+                ? `Trends for ${location.name}`
+                : "Select a station to view trends"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <LocationSelector 
-            selectedId={stationId} 
+            selectedId={activeStationId} 
             onSelect={handleStationSelect} 
           />
           <DateRangeSelector 

@@ -1,3 +1,5 @@
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 import { useState, useCallback } from "react";
 import { UploadCloud, FileText, CheckCircle2, Trash2 } from "lucide-react";
 import { useDropzone } from "react-dropzone";

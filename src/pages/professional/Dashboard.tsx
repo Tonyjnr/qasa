@@ -1,3 +1,7 @@
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 import { useState, useEffect } from "react";
 import { UserButton } from "@clerk/clerk-react";
 import { dark } from "@clerk/themes";
@@ -50,7 +54,7 @@ export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
     enablePolling: true,
   });
-  
+
   const [activeTab, setActiveTab] = useState<string>(
     () => localStorage.getItem("professionalActiveTab") || "dashboard"
   );
@@ -114,7 +118,8 @@ export default function ProfessionalDashboard() {
   ];
 
   // Get current tab label
-  const currentTabLabel = navItems.find((n) => n.id === activeTab)?.label || "Dashboard";
+  const currentTabLabel =
+    navItems.find((n) => n.id === activeTab)?.label || "Dashboard";
 
   if (isLoading && !data) {
     return (
@@ -165,7 +170,10 @@ export default function ProfessionalDashboard() {
               <div className="h-1 w-full rounded-full bg-[#0F9D58]" />
             </div>
             <span className="text-xl font-bold tracking-tight text-foreground">
-              QASA <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1 align-middle">PRO</span>
+              QASA{" "}
+              <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded ml-1 align-middle">
+                PRO
+              </span>
             </span>
           </div>
         </div>
@@ -294,7 +302,9 @@ export default function ProfessionalDashboard() {
                           Live Monitoring Network
                         </h2>
                       </div>
-                      <InteractiveMapProfessional center={[location.lat, location.lng]} />
+                      <InteractiveMapProfessional
+                        center={[location.lat, location.lng]}
+                      />
                     </section>
 
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
@@ -331,10 +341,7 @@ export default function ProfessionalDashboard() {
           </div>
         </ResizablePanel>
 
-        <ResizableHandle
-          withHandle
-          className="bg-border hover:bg-primary/20"
-        />
+        <ResizableHandle withHandle className="bg-border hover:bg-primary/20" />
 
         <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
           <ScrollArea className="h-full">

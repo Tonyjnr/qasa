@@ -15,9 +15,18 @@ const CITIES_TO_TRACK = [
   "Riyadh,SA", "Johannesburg,ZA", "Nairobi,KE", "Accra,GH", "Casablanca,MA"
 ];
 
+// Define interface for city ranking item
+interface CityRankingItem {
+  rank: number;
+  city: string;
+  aqi: number;
+  pm25?: number; // Optional based on API
+  pm10?: number; // Optional based on API
+}
+
 export const CityRankingTable = () => {
   const parentRef = useRef<HTMLDivElement>(null);
-  const [rankings, setRankings] = useState<any[]>([]);
+  const [rankings, setRankings] = useState<CityRankingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -129,8 +138,6 @@ export const CityRankingTable = () => {
                         >
                           {category}
                         </span>
-                        {/* Optional PM2.5 detail if available in future */}
-                        {/* <span className="text-[10px] text-muted-foreground text-center">PM2.5: {city.pm25}</span> */}
                       </div>
                     </div>
                   </div>

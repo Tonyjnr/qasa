@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
 import { AqiStationMarker } from "./AqiStationMarker";
@@ -29,7 +29,7 @@ interface InteractiveMapProfessionalProps {
   center?: [number, number];
 }
 
-export const InteractiveMapProfessional = ({ center }: InteractiveMapProfessionalProps) => {
+export const InteractiveMapProfessional: React.FC<InteractiveMapProfessionalProps> = ({ center }) => {
   const [activeLayer, setActiveLayer] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<MonitoringStation | null>(null);
 
