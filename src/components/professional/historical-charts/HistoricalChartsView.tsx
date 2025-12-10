@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
 import { useHistoricalAqi } from "../../../hooks/useHistoricalAqi";
 import { AqiPollutantLineChart } from "./AqiPollutantLineChart";
@@ -10,13 +11,15 @@ interface HistoricalChartsViewProps {
   location?: { lat: number; lng: number; name: string };
 }
 
-export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) => {
+export const HistoricalChartsView = ({
+  location,
+}: HistoricalChartsViewProps) => {
   const [stationId, setStationId] = useState<string | null>(null);
   const [days, setDays] = useState(7);
-  
+
   // Get available stations to potentially match against the search location
   const { data: stations } = useMonitoringStations();
-  
+
   // Automatically update station context when global location changes
   useEffect(() => {
     if (location) {
@@ -41,17 +44,18 @@ export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) =>
       {/* Controls Header - Simplified */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-4 rounded-xl shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-foreground">Historical Analysis</h2>
+          <h2 className="text-lg font-bold text-foreground">
+            Historical Analysis
+          </h2>
           <p className="text-sm text-muted-foreground">
-            {location ? `Trends for ${location.name}` : "Select a location via search"}
+            {location
+              ? `Trends for ${location.name}`
+              : "Select a location via search"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {/* Location Picker Removed */}
-          <DateRangeSelector 
-            days={days} 
-            onRangeChange={setDays} 
-          />
+          <DateRangeSelector days={days} onRangeChange={setDays} />
         </div>
       </div>
 

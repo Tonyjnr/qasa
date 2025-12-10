@@ -75,7 +75,7 @@ export const InteractiveMap = ({
       <MapContainer
         center={center}
         zoom={12}
-        scrollWheelZoom={true}
+        scrollWheelZoom={false}
         className="h-full w-full"
       >
         {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}

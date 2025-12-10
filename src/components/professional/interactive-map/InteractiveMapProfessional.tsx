@@ -63,7 +63,7 @@ export const InteractiveMapProfessional = ({ center, onLocationChange }: Interac
         center={center || [6.5244, 3.3792]} 
         zoom={6}
         className="h-full w-full z-0"
-        scrollWheelZoom={true}
+        scrollWheelZoom={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

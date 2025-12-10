@@ -110,7 +110,8 @@ function AppContent() {
   if (!isLoaded) return <LoadingSpinner />;
 
   // Derived state for onboarding
-  const needsOnboarding = isSignedIn && user && !user.unsafeMetadata?.onboardingCompleted;
+  const needsOnboarding =
+    isSignedIn && user && !user.unsafeMetadata?.onboardingCompleted;
 
   if (needsOnboarding) {
     return <OnboardingFlow onComplete={handleOnboardingComplete} />;

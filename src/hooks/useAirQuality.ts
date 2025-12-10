@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { AQIData, Location } from "../types";
 import { fetchAirQuality } from "../services/airQualityService";
 
@@ -6,6 +7,7 @@ import { fetchAirQuality } from "../services/airQualityService";
 const DEFAULT_LAT = 6.5244;
 const DEFAULT_LNG = 3.3792;
 const DEFAULT_NAME = "Lagos, NG";
+const POLL_INTERVAL = 900000; // 15 minutes
 
 interface UseAirQualityProps {
   enablePolling?: boolean;
@@ -17,7 +19,7 @@ export function useAirQuality(
   const [data, setData] = useState<AQIData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date(0)); // Initialize with old date
 
   const [location, setLocationState] = useState<Location>({
     lat: DEFAULT_LAT,
@@ -25,23 +27,26 @@ export function useAirQuality(
     name: DEFAULT_NAME,
   });
 
+  // Use ref to keep track of latest location without triggering re-renders in effect
+  const locationRef = useRef(location);
+  useEffect(() => {
+    locationRef.current = location;
+  }, [location]);
+
   const refresh = useCallback(
     async (overrideLat?: number, overrideLng?: number) => {
       setIsLoading(true);
       setError(null);
-      const targetLat = overrideLat ?? location.lat;
-      const targetLng = overrideLng ?? location.lng;
+      const targetLat = overrideLat ?? locationRef.current.lat;
+      const targetLng = overrideLng ?? locationRef.current.lng;
 
       try {
-        // If overriding, finding the name might be needed (reverse geo), but for now we fetch AQI
-        // The fetchAirQuality service might return location name in data, which we use.
         const result = await fetchAirQuality(
           targetLat,
           targetLng,
-          overrideLat ? "Unknown" : location.name
+          overrideLat ? "Unknown" : locationRef.current.name
         );
         setData(result);
-        // Update internal location state if we moved
         if (overrideLat && overrideLng) {
           setLocationState({
             lat: targetLat,
@@ -61,47 +66,77 @@ export function useAirQuality(
         setIsLoading(false);
       }
     },
-    [location]
+    []
   );
 
   const setLocation = (lat: number, lng: number, name?: string) => {
     setLocationState({ lat, lng, name: name || "Selected Location" });
   };
 
-  // Effect 1: React to Refresh/Location changes & Polling
+  // Initial Fetch & Geolocation
   useEffect(() => {
+    // Initial fetch for default location
     refresh();
 
-    let intervalId: NodeJS.Timeout;
-    if (props.enablePolling) {
-      intervalId = setInterval(() => {
-        refresh();
-      }, 300000); // Poll every 5 minutes
-    }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [refresh, props.enablePolling]);
-
-  // Effect 2: Initial Geolocation (Mount only)
-  useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          // This will update the location state and trigger the main effect again with the new location
-          // We pass overrides to specificially target this new spot immediately
-          // The refresh function handles updating the location state if overrides are present
           refresh(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
           console.warn("Geolocation access denied or failed:", error);
-          // Fallback is default location (Lagos), which main effect already handles
         }
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array to run only on mount
+  }, [refresh]);
+
+  // Polling & Visibility Logic
+  useEffect(() => {
+    if (!props.enablePolling) return;
+
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(() => {
+        refresh();
+      }, POLL_INTERVAL);
+    };
+
+    const stopPolling = () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        // If visible, check if we need to refresh immediately
+        const now = new Date();
+        const timeSinceLastUpdate = now.getTime() - lastUpdated.getTime();
+
+        if (timeSinceLastUpdate > POLL_INTERVAL) {
+          refresh();
+        }
+        startPolling();
+      }
+    };
+
+    // Initial check
+    if (!document.hidden) {
+      startPolling();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [props.enablePolling, refresh, lastUpdated]);
 
   return {
     data,
