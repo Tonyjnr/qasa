@@ -14,6 +14,13 @@ import {
 } from "../src/db/schema";
 import { desc, eq, and } from "drizzle-orm";
 
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Determine __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -30,6 +37,12 @@ app.use(cookieParser());
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
+
+// Serve static files in production
+if (process.env.NODE_ENV === "production") {
+  const distPath = path.join(__dirname, "../dist");
+  app.use(express.static(distPath));
+}
 
 // --- API ENDPOINTS ---
 
@@ -263,6 +276,16 @@ app.post("/api/cron/trigger-aqi-fetch", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+// SPA fallback for production
+if (process.env.NODE_ENV === "production") {
+  app.get(/.*/, (req, res) => {
+    if (!req.path.startsWith("/api")) {
+      const distPath = path.join(__dirname, "../dist");
+      res.sendFile(path.join(distPath, "index.html"));
+    }
+  });
+}
 
 // --- CRON JOB: Fetch AQI hourly ---
 const LOCATIONS_TO_TRACK = [
