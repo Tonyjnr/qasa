@@ -2,11 +2,8 @@ import { UserProfile } from "@clerk/clerk-react";
 import { RoleToggle } from "../components/profile/RoleToggle";
 import { AlertSettings } from "../components/professional/alerts/AlertSettings";
 import { dark } from "@clerk/themes";
-import { useTheme } from "../contexts/ThemeProvider";
 
 export const ProfileView = () => {
-  const { theme } = useTheme();
-
   return (
     <div className="min-h-screen w-full bg-background p-4 animate-in fade-in duration-500">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -16,7 +13,7 @@ export const ProfileView = () => {
             path="/profile"
             routing="path"
             appearance={{
-              baseTheme: theme === "dark" ? dark : undefined,
+              baseTheme: dark,
               elements: {
                 rootBox: "w-full",
                 card: "bg-card border border-border shadow-none rounded-xl",
@@ -36,7 +33,7 @@ export const ProfileView = () => {
         {/* Custom Settings Column */}
         <div className="space-y-6">
           <RoleToggle />
-          
+
           {/* New Alert Settings */}
           <AlertSettings />
 
