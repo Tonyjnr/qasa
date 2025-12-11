@@ -16,6 +16,7 @@ import {
   Cloud,
   LineChart,
   ListOrdered,
+  MapPin,
 } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
@@ -84,7 +85,8 @@ export default function ProfessionalDashboard() {
   // Debounced Search
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (searchQuery.trim()) {
+      // Only search if 3 or more characters
+      if (searchQuery.trim().length >= 3) {
         try {
           setIsSearching(true);
           const results = await searchLocation(searchQuery);
@@ -212,9 +214,14 @@ export default function ProfessionalDashboard() {
         <div className="space-y-6">
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg lg:text-xl font-bold text-foreground">
-                Live Monitoring Network
+              <h2 className="text-lg lg:text-xl font-bold text-foreground flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-primary" />
+                {location.name || "Live Monitoring Network"}
               </h2>
+              {/* Optional: Add a badge indicating source */}
+              <span className="text-[10px] bg-accent px-2 py-1 rounded text-muted-foreground uppercase tracking-wider">
+                Live
+              </span>
             </div>
             {/* Reduced height for mobile map */}
             <div className="h-[300px] lg:h-[500px] rounded-xl overflow-hidden border border-border shadow-sm">
@@ -509,7 +516,15 @@ export default function ProfessionalDashboard() {
                 <UserButton
                   appearance={{
                     baseTheme: dark,
-                    elements: { userButtonPopoverFooter: "hidden" },
+                    elements: {
+                      userButtonPopoverCard:
+                        "bg-slate-900 border border-slate-800",
+                      userButtonPopoverFooter: "hidden",
+                      userButtonPopoverActionButton:
+                        "hover:bg-slate-800 text-slate-200",
+                      userButtonPopoverActionButtonText: "text-slate-200",
+                      userButtonPopoverActionButtonIcon: "text-slate-400",
+                    },
                   }}
                 />
               </div>

@@ -44,8 +44,11 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.0",
     "express": "^5.2.1",
+    "idb": "^8.0.3",
     "js-cookie": "^3.0.5",
     "jsonwebtoken": "^9.0.3",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
     "leaflet.markercluster": "^1.5.3",
@@ -94,7 +97,7 @@
     "supertest": "^7.1.4",
     "tailwindcss": "^4.1.17",
     "tsx": "^4.21.0",
-    "typescript": "~5.9.3",
+    "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
   }

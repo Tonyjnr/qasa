@@ -27,6 +27,10 @@
     "paths": {
       "@neondatabase/serverless": [
         "./node_modules/@neondatabase/serverless/index.d.ts"
+      ],
+      "@clerk/themes": ["./node_modules/@clerk/themes/dist/index.d.ts"],
+      "@radix-ui/react-dialog": [
+        "./node_modules/@radix-ui/react-dialog/dist/index.d.ts"
       ]
     }
   },

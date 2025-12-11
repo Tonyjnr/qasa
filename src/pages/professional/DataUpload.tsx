@@ -1,22 +1,49 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { UploadCloud, FileText, CheckCircle2, Trash2 } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
 import { COMPONENT_STYLES } from "../../lib/designTokens";
+import { saveUpload, getUploads } from "../../lib/db";
 
 interface UploadedFile {
   id: string;
-  file: File;
+  file: File; // or Blob
   progress: number;
   status: "uploading" | "completed" | "error";
+  uploadedAt?: Date;
 }
 
 export const DataUpload = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
+
+  // Load persisted uploads on mount
+  useEffect(() => {
+    const loadUploads = async () => {
+      try {
+        const saved = await getUploads();
+        if (saved && saved.length > 0) {
+          // Map DB objects back to UI state
+          setFiles(
+            saved.map((item: any) => ({
+              id: item.id,
+              file: item.file || new File([], item.name || "Unknown"), // Fallback if file missing
+              progress: 100,
+              status: "completed",
+              uploadedAt: item.uploadedAt,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load uploads:", error);
+      }
+    };
+    loadUploads();
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map((file) => ({
@@ -24,32 +51,54 @@ export const DataUpload = () => {
       file,
       progress: 0,
       status: "uploading" as const,
+      uploadedAt: new Date(),
     }));
 
     setFiles((prev) => [...prev, ...newFiles]);
 
-    // Simulate upload
-    newFiles.forEach((fileObj) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        setFiles((currentFiles) =>
-          currentFiles.map((f) =>
-            f.id === fileObj.id
-              ? {
-                  ...f,
-                  progress,
-                  status: progress >= 100 ? "completed" : "uploading",
-                }
-              : f
+    // Process and Save
+    newFiles.forEach(async (fileObj) => {
+      try {
+        // Save to IndexedDB
+        await saveUpload({
+          id: fileObj.id,
+          name: fileObj.file.name,
+          size: fileObj.file.size,
+          type: fileObj.file.type,
+          file: fileObj.file, // IDB can store Blobs/Files
+          uploadedAt: fileObj.uploadedAt,
+        });
+
+        // Simulate progress for UI feedback
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += 20;
+          setFiles((currentFiles) =>
+            currentFiles.map((f) =>
+              f.id === fileObj.id
+                ? {
+                    ...f,
+                    progress: Math.min(progress, 100),
+                    status: progress >= 100 ? "completed" : "uploading",
+                  }
+                : f
+            )
+          );
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            toast.success(`${fileObj.file.name} saved locally`);
+          }
+        }, 100);
+      } catch (error) {
+        console.error("Save failed:", error);
+        toast.error(`Failed to save ${fileObj.file.name}`);
+        setFiles((current) =>
+          current.map((f) =>
+            f.id === fileObj.id ? { ...f, status: "error" } : f
           )
         );
-
-        if (progress >= 100) {
-          clearInterval(interval);
-          toast.success(`${fileObj.file.name} uploaded successfully`);
-        }
-      }, 300);
+      }
     });
   }, []);
 

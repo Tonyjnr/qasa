@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, useMapEvents, Marker, Popup } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-markercluster";
+import L from "leaflet";
 import { AqiStationMarker } from "./AqiStationMarker";
 import { PollutionLayer } from "./PollutionLayer";
 import { MapControls } from "./MapControls";
@@ -10,6 +11,14 @@ import type { MonitoringStation } from "../../../types/maps";
 import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+
+// Custom Icon for User's Search Location (e.g., Red Pin)
+const selectedLocationIcon = L.divIcon({
+  className: "custom-pin-marker",
+  html: `<div style="background-color: #ef4444; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(239,68,68,0.5);"></div>`,
+  iconSize: [12, 12],
+  iconAnchor: [6, 6],
+});
 
 // Component to handle map flying when center prop changes
 const MapController = ({ center }: { center?: [number, number] }) => {
@@ -71,6 +80,20 @@ export const InteractiveMapProfessional = ({ center, onLocationChange }: Interac
         />
 
         {activeLayer && <PollutionLayer layer={activeLayer} />}
+
+        {/* [FIX] Marker for Current/Searched Location */}
+        {center && (
+          <Marker position={center} icon={selectedLocationIcon}>
+            <Popup>
+              <div className="text-center">
+                <p className="font-bold text-sm">Selected Location</p>
+                <p className="text-xs text-muted-foreground">
+                  {center[0].toFixed(4)}, {center[1].toFixed(4)}
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
 
         <MarkerClusterGroup>
           {stations?.map((station) => (

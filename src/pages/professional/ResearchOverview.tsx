@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { StorageUsage } from "../../components/professional/research/StorageUsage";
 
 export const ResearchOverview = ({ datasets }: { datasets: Dataset[] }) => (
   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 p-4 lg:p-8">
@@ -150,6 +151,9 @@ export const ResearchOverview = ({ datasets }: { datasets: Dataset[] }) => (
             </div>
           </CardContent>
         </Card>
+
+        {/* Storage Usage Chart */}
+        <StorageUsage />
       </div>
     </div>
   </div>

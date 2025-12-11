@@ -82,7 +82,7 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
                     max="500"
                     value={pm25Level}
                     onChange={(e) => setPm25Level(Number(e.target.value))}
-                    className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                    className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
                   />
                   <span className="w-16 text-right font-mono font-bold text-foreground">
                     {pm25Level}
@@ -103,7 +103,7 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
                     step="0.5"
                     value={exposureHours}
                     onChange={(e) => setExposureHours(Number(e.target.value))}
-                    className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                    className="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
                   />
                   <span className="w-16 text-right font-mono font-bold text-foreground">
                     {exposureHours}h
