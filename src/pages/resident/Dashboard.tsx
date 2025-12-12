@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 import { Search, Bell, AlertTriangle } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
@@ -50,7 +52,6 @@ export const Dashboard = () => {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   const [searchQuery, setSearchQuery] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -127,6 +128,34 @@ export const Dashboard = () => {
             className="rounded-full bg-primary px-8 py-3 font-bold text-primary-foreground shadow-lg transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95"
           >
             Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- NO DATA STATE ---
+  if (!data) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="mb-6 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <AlertTriangle className="h-10 w-10" />
+            </div>
+          </div>
+          <h2 className="mb-2 text-3xl font-bold text-foreground">
+            No Data Available
+          </h2>
+          <p className="mb-8 max-w-md text-muted-foreground">
+            We couldn't retrieve air quality data for your location. Please try
+            refreshing.
+          </p>
+          <button
+            onClick={() => refresh()}
+            className="rounded-full bg-primary px-8 py-3 font-bold text-primary-foreground shadow-lg transition-transform hover:scale-105 hover:bg-primary/90 active:scale-95"
+          >
+            Refresh Data
           </button>
         </div>
       </div>
