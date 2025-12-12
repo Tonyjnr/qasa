@@ -133,14 +133,14 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
               >
                 {isExpanded ? (
                   <path
-                    d="M4 11L11 4M11 4H5M11 4V10"
+                    d="M2 13L9 6M9 6H3M9 6V12"
                     stroke="currentColor"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 ) : (
                   <path
-                    d="M2 13L9 6M9 6H3M9 6V12"
+                    d="M4 11L11 4M11 4H5M11 4V10"
                     stroke="currentColor"
                     strokeLinecap="round"
                     strokeLinejoin="round"

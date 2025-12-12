@@ -50,7 +50,7 @@ export const NavigationSidebar = ({
           <div className="flex h-8 w-8 flex-col justify-center gap-[3px] overflow-hidden rounded-full bg-foreground/5 p-1.5 backdrop-blur-sm">
             <div className="h-1 w-full rounded-full bg-[#4285F4]" />
             <div className="h-1 w-[80%] rounded-full bg-[#26A69A]" />
-            <div className="h-1 w-full rounded-full bg-[#0F9D58]" />
+            <div className="h-1 w-full rounded-full bg-[#152236]/60" />
           </div>
           <span className="text-xl font-bold tracking-tight text-foreground">
             QASA{" "}
