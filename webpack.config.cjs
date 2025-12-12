@@ -18,7 +18,9 @@ module.exports = (env, argv) => {
     entry: "./src/main.tsx", // Entry point
     output: {
       path: path.resolve(__dirname, "dist"),
-      filename: isProduction ? "assets/[name].[contenthash].js" : "assets/[name].js",
+      filename: isProduction
+        ? "assets/[name].[contenthash].js"
+        : "assets/[name].js",
       publicPath: "/", // Important for React Router
       assetModuleFilename: "assets/images/[hash][ext][query]",
     },
@@ -33,7 +35,7 @@ module.exports = (env, argv) => {
         // Polyfills if needed for older node packages in browser
         buffer: require.resolve("buffer/"),
         process: require.resolve("process/browser"),
-      }
+      },
     },
     module: {
       rules: [
@@ -44,7 +46,9 @@ module.exports = (env, argv) => {
             {
               loader: "babel-loader",
               options: {
-                plugins: [!isProduction && require.resolve("react-refresh/babel")].filter(Boolean),
+                plugins: [
+                  !isProduction && require.resolve("react-refresh/babel"),
+                ].filter(Boolean),
               },
             },
           ],
@@ -83,22 +87,22 @@ module.exports = (env, argv) => {
             to: "",
             globOptions: {
               ignore: ["**/index.html"], // HTML is handled by HtmlWebpackPlugin
-            }
+            },
           },
         ],
       }),
       new webpack.ProvidePlugin({
-        process: 'process/browser.js',
-        Buffer: ['buffer', 'Buffer'],
+        process: "process/browser.js",
+        Buffer: ["buffer", "Buffer"],
       }),
       new MiniCssExtractPlugin({
-        filename: 'assets/[name].[contenthash].css',
+        filename: "assets/[name].[contenthash].css",
       }),
       // PWA Support - Replaces VitePWA
       new InjectManifest({
         swSrc: "./src/sw.ts",
         swDest: "sw.js",
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
       }),
       !isProduction && new ReactRefreshWebpackPlugin(),
     ].filter(Boolean),
