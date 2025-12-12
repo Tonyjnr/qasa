@@ -16,7 +16,7 @@ export function useAirQuality(
   props: UseAirQualityProps = { enablePolling: false }
 ) {
   const [data, setData] = useState<AQIData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date(0));
 
