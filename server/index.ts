@@ -20,6 +20,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 
+// --- AI IMPORTS ---
+import { streamText, tool } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
+import { z } from "zod";
+
 // Determine __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,6 +40,11 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+
+// --- AI GATEWAY CONFIGURATION ---
+const openai = createOpenAI({
+  apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
+});
 
 // Health check
 app.get("/health", (req, res) => {
@@ -54,6 +64,49 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // --- API ENDPOINTS ---
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { messages, mode, contextData } = req.body;
+
+    const systemContext = `
+      Current Context Data: ${JSON.stringify(contextData || {})}
+      
+      ROLE: ${
+        mode === "resident"
+          ? "You are QASA AI, a helpful assistant for residents. Focus on health, safety, and outdoor activities based on AQI."
+          : "You are QASA Research Assistant. Focus on data analysis, sensor anomalies, and risk assessment."
+      }
+    `;
+
+    const result = streamText({
+      model: openai("gpt-4o"),
+      messages,
+      system: systemContext,
+      tools: {
+        generateReport: tool({
+          description: "Generate a downloadable report for the user",
+          parameters: z.object({
+            title: z.string().describe("Report title"),
+            summary: z.string().describe("Executive summary of findings"),
+          }),
+          execute: async ({ title }) => {
+            return {
+              success: true,
+              url: "/api/reports/latest.pdf",
+              message: `Report '${title}' generated.`,
+            };
+          },
+        }),
+      },
+    });
+
+    result.pipeDataStreamToResponse(res);
+  } catch (error) {
+    console.error("AI Chat Error:", error);
+    res.status(500).json({ error: "Failed to process AI request" });
+  }
+});
 
 // GET /api/datasets
 app.get("/api/datasets", async (req, res) => {

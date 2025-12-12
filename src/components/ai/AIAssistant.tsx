@@ -1,115 +1,62 @@
-import { useState, useRef, useEffect } from "react";
-import { Bot, X, Sparkles } from "lucide-react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
+/** biome-ignore-all lint/a11y/noSvgWithoutTitle: <explanation> */
+import {
+  useState,
+  useRef,
+  useEffect,
+  type Key,
+  type JSXElementConstructor,
+  type ReactElement,
+  type ReactNode,
+  type ReactPortal,
+} from "react";
+import { Bot, X, Sparkles, FileText, Send } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
-
-type Message = {
-  id: string;
-  role: "user" | "ai";
-  text: string;
-  timestamp: Date;
-};
+import { useChat } from "ai/react";
 
 interface AIAssistantProps {
   mode: "resident" | "professional";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  contextData?: any; // Data to "feed" the AI for context
+  contextData?: any;
 }
 
 export function AIAssistant({ mode, contextData }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "welcome",
-      role: "ai",
-      text:
-        mode === "resident"
-          ? "Hi! I'm QASA AI. I can help you understand today's air quality and plan your outdoor activities. How can I help?"
-          : "QASA Research Assistant online. I can help you analyze datasets, calculate risk models, or generate reports from your sensor network.",
-      timestamp: new Date(),
-    },
-  ]);
-
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useChat({
+      api: "/api/chat",
+      body: {
+        mode,
+        contextData,
+      },
+      initialMessages: [
+        {
+          id: "welcome",
+          role: "assistant",
+          content:
+            mode === "resident"
+              ? "Hi! I'm QASA AI. I can check local air quality for you. Try asking 'Can I go for a run?'"
+              : "QASA Research Assistant online. I can help analyze your datasets or generate risk reports.",
+        },
+      ],
+    });
+
+  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, isOpen]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-
-    const newUserMsg: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      text: inputValue,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newUserMsg]);
-    setInputValue("");
-    setIsLoading(true);
-
-    // Mock AI Latency and Logic
-    setTimeout(() => {
-      let responseText = "I'm processing that request...";
-      const lowerInput = newUserMsg.text.toLowerCase();
-
-      if (mode === "resident") {
-        if (
-          lowerInput.includes("run") ||
-          lowerInput.includes("jog") ||
-          lowerInput.includes("exercise")
-        ) {
-          const aqi = contextData?.aqi || 80; // Fallback if no data
-          if (aqi < 50)
-            responseText = `With an AQI of ${aqi}, it's a great time for a run! The air is clean.`;
-          else if (aqi < 100)
-            responseText = `The AQI is ${aqi} (Moderate). You can go for a run, but if you're sensitive, maybe keep it short.`;
-          else
-            responseText = `I wouldn't recommend running right now. The AQI is ${aqi}, which is unhealthy for exertion.`;
-        } else if (lowerInput.includes("mask")) {
-          responseText =
-            "Based on current PM2.5 levels, carrying a mask is recommended if you plan to be outdoors for more than an hour.";
-        } else {
-          responseText =
-            "I can analyze current pollutant levels for you. Try asking 'Can I go for a run?' or 'Do I need a mask?'";
-        }
-      } else {
-        // Professional Mode Logic
-        if (lowerInput.includes("trend") || lowerInput.includes("analysis")) {
-          responseText =
-            "Analyzing dataset 'Lagos_Mainland_Q3'... I've detected a 15% increase in NO2 levels during morning peak hours compared to last month. Shall I generate a PDF report?";
-        } else if (lowerInput.includes("export")) {
-          responseText =
-            "I've prepared the CSV export for the selected time range. You can find it in the 'Reports' tab.";
-        } else {
-          responseText =
-            "I'm ready to assist with your research data. You can ask for 'Trend Analysis' or 'Export Options'.";
-        }
-      }
-
-      const newAiMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "ai",
-        text: responseText,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, newAiMsg]);
-      setIsLoading(false);
-    }, 1500);
-  };
-
   return (
     <>
-      {/* --- Floating Trigger Button --- */}
+      {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
         {!isOpen && (
           <div className="bg-white dark:bg-slate-800 px-4 py-2 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 mb-2 animate-in slide-in-from-right-10 fade-in duration-300">
@@ -136,7 +83,7 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
         </Button>
       </div>
 
-      {/* --- Chat Window --- */}
+      {/* Chat Window */}
       {isOpen && (
         <div
           className={cn(
@@ -158,118 +105,169 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
                 </h3>
                 <p className="text-xs text-green-500 flex items-center gap-1">
                   <span className="block h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Online
+                  Gateway Connected
                 </p>
               </div>
             </div>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setIsExpanded(!isExpanded)}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <span className="sr-only">Toggle Expand</span>
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 15 15"
+                fill="none"
+                className="h-4 w-4 text-foreground"
               >
-                {/* Simple icon switch based on state */}
-                <span className="sr-only">Toggle Expand</span>
-                <svg
-                  width="15"
-                  height="15"
-                  viewBox="0 0 15 15"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                >
-                  {isExpanded ? (
-                    <path
-                      d="M4 11L11 4M11 4H5M11 4V10"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  ) : (
-                    <path
-                      d="M2 13L9 6M9 6H3M9 6V12"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  )}
-                </svg>
-              </Button>
-            </div>
+                {isExpanded ? (
+                  <path
+                    d="M4 11L11 4M11 4H5M11 4V10"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ) : (
+                  <path
+                    d="M2 13L9 6M9 6H3M9 6V12"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                )}
+              </svg>
+            </Button>
           </div>
 
-          {/* Messages Area */}
+          {/* Messages */}
           <div
             ref={scrollRef}
             className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-slate-950/50"
           >
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={cn(
-                  "flex w-full",
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                )}
-              >
+            {messages.map(
+              (msg: {
+                id: Key | null | undefined;
+                role: string;
+                content:
+                  | string
+                  | number
+                  | bigint
+                  | boolean
+                  | ReactElement<unknown, string | JSXElementConstructor<any>>
+                  | Iterable<ReactNode>
+                  | ReactPortal
+                  | Promise<
+                      | string
+                      | number
+                      | bigint
+                      | boolean
+                      | ReactPortal
+                      | ReactElement<
+                          unknown,
+                          string | JSXElementConstructor<any>
+                        >
+                      | Iterable<ReactNode>
+                      | null
+                      | undefined
+                    >
+                  | null
+                  | undefined;
+                toolInvocations: {
+                  toolName: string;
+                  state: string;
+                  toolCallId: Key | null | undefined;
+                }[];
+              }) => (
                 <div
+                  key={msg.id}
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-br-none"
-                      : "bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                    "flex w-full",
+                    msg.role === "user" ? "justify-end" : "justify-start"
                   )}
                 >
-                  {msg.text}
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm",
+                      msg.role === "user"
+                        ? "bg-blue-600 text-white rounded-br-none"
+                        : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none"
+                    )}
+                  >
+                    {msg.content}
+                    {/* Tool output rendering (e.g. generated reports) */}
+                    {msg.toolInvocations?.map(
+                      (tool: {
+                        toolName: string;
+                        state: string;
+                        toolCallId: Key | null | undefined;
+                      }) => {
+                        if (
+                          tool.toolName === "generateReport" &&
+                          tool.state === "result"
+                        ) {
+                          return (
+                            <div
+                              key={tool.toolCallId}
+                              className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700 flex items-center gap-2"
+                            >
+                              <FileText className="h-4 w-4 text-red-500" />
+                              <span className="text-xs font-medium">
+                                Report Generated
+                              </span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm dark:bg-slate-800 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-bl-none shadow-sm border border-slate-200 dark:border-slate-700">
                   <div className="flex gap-1">
-                    <span
-                      className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
-                      style={{ animationDelay: "0ms" }}
-                    />
-                    <span
-                      className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
-                      style={{ animationDelay: "150ms" }}
-                    />
-                    <span
-                      className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
-                      style={{ animationDelay: "300ms" }}
-                    />
+                    <span className="h-2 w-2 rounded-full bg-slate-400 animate-bounce delay-0" />
+                    <span className="h-2 w-2 rounded-full bg-slate-400 animate-bounce delay-150" />
+                    <span className="h-2 w-2 rounded-full bg-slate-400 animate-bounce delay-300" />
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Input Area */}
-          <div className="p-4 bg-white border-t border-slate-100 dark:bg-slate-900 dark:border-slate-800">
-            <div className="relative flex items-center">
+          {/* Input */}
+          <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmit(e);
+              }}
+              className="relative flex items-center"
+            >
               <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                value={input}
+                onChange={handleInputChange}
                 placeholder={
                   mode === "resident"
-                    ? "Ask about air quality..."
-                    : "Ask about data..."
+                    ? "How is the air today?"
+                    : "Analyze current trends..."
                 }
-                className="w-full rounded-full border border-slate-200 bg-slate-50 py-3 pl-4 pr-12 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+                className="w-full rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-3 pl-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white"
               />
               <Button
-                onClick={handleSendMessage}
+                type="submit"
                 size="icon"
+                disabled={isLoading || !input.trim()}
                 className="absolute right-1 h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
-                disabled={!inputValue.trim() || isLoading}
               >
-                <Sparkles className="h-4 w-4" />
+                <Send className="h-4 w-4" />
               </Button>
-            </div>
+            </form>
           </div>
         </div>
       )}
