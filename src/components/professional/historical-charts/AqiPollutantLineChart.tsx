@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import {
   LineChart,
   Line,
@@ -12,6 +13,7 @@ import {
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { useTheme } from "../../../contexts/ThemeProvider";
+import { useMediaQuery } from "../../../hooks/useMediaQuery";
 
 interface AqiPollutantLineChartProps {
   data: {
@@ -29,17 +31,21 @@ export const AqiPollutantLineChart = ({
   title,
 }: AqiPollutantLineChartProps) => {
   const { theme } = useTheme();
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const chartData = data.map((item) => ({
     ...item,
-    formattedDate: format(new Date(item.date), "MMM dd HH:mm"),
+    formattedDate: format(
+      new Date(item.date),
+      isMobile ? "dd MMM" : "MMM dd HH:mm"
+    ),
   }));
 
   // Theme-aware colors
-  const textColor = theme === 'dark' ? '#94a3b8' : '#64748b'; // slate-400 : slate-500
-  const gridColor = theme === 'dark' ? '#334155' : '#e2e8f0'; // slate-700 : slate-200
-  const tooltipBg = theme === 'dark' ? '#1e293b' : '#ffffff'; // slate-800 : white
-  const tooltipBorder = theme === 'dark' ? '#334155' : '#e2e8f0';
+  const textColor = theme === "dark" ? "#94a3b8" : "#64748b"; // slate-400 : slate-500
+  const gridColor = theme === "dark" ? "#334155" : "#e2e8f0"; // slate-700 : slate-200
+  const tooltipBg = theme === "dark" ? "#1e293b" : "#ffffff"; // slate-800 : white
+  const tooltipBorder = theme === "dark" ? "#334155" : "#e2e8f0";
 
   return (
     <Card className="h-full">
@@ -58,16 +64,17 @@ export const AqiPollutantLineChart = ({
               <XAxis
                 dataKey="formattedDate"
                 stroke={textColor}
-                fontSize={12}
+                fontSize={isMobile ? 10 : 12}
                 tickLine={false}
                 axisLine={false}
                 minTickGap={30}
               />
               <YAxis
                 stroke={textColor}
-                fontSize={12}
+                fontSize={isMobile ? 10 : 12}
                 tickLine={false}
                 axisLine={false}
+                width={isMobile ? 25 : 40}
               />
               <Tooltip
                 contentStyle={{
@@ -75,17 +82,24 @@ export const AqiPollutantLineChart = ({
                   border: `1px solid ${tooltipBorder}`,
                   backgroundColor: tooltipBg,
                   boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  color: theme === 'dark' ? '#f8fafc' : '#0f172a',
+                  color: theme === "dark" ? "#f8fafc" : "#0f172a",
                 }}
                 itemStyle={{
-                  color: theme === 'dark' ? '#e2e8f0' : '#334155'
+                  color: theme === "dark" ? "#e2e8f0" : "#334155",
                 }}
                 labelStyle={{
-                  color: theme === 'dark' ? '#94a3b8' : '#64748b',
-                  marginBottom: '0.5rem'
+                  color: theme === "dark" ? "#94a3b8" : "#64748b",
+                  marginBottom: "0.5rem",
                 }}
               />
-              <Legend wrapperStyle={{ paddingTop: '20px' }} />
+              <Legend
+                wrapperStyle={{
+                  paddingTop: isMobile ? "10px" : "20px",
+                  fontSize: isMobile ? "10px" : "14px",
+                  width: "100%",
+                }}
+                iconSize={isMobile ? 8 : 14}
+              />
               <Line
                 type="monotone"
                 dataKey="aqi"

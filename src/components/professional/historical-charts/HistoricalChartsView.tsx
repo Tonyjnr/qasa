@@ -61,7 +61,7 @@ export const HistoricalChartsView = ({
           </Card>
         ) : data?.hourly && data.hourly.length > 0 ? (
           // Adjust chart container height for mobile
-          <div className="h-[300px] sm:h-[450px]">
+          <div className="h-[250px] sm:h-[450px]">
             <AqiPollutantLineChart
               data={data.hourly}
               title={`Trends (${days} Days)`}

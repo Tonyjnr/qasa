@@ -71,7 +71,7 @@ export const NavigationSidebar = ({
                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
                 activeTab === item.id
                   ? "bg-[#1e293b] text-white shadow-md border border-white/10 ring-1 ring-white/10"
-                  : "text-muted-foreground hover:bg-background/80 hover:bg-opacity-50 hover:border hover:border-white/10 hover:text-white hover:pl-4"
+                  : "text-muted-foreground hover:bg-[#1e293b]/80 hover:text-white hover:pl-4"
               )}
             >
               <item.icon className="h-4 w-4" /> {item.label}
