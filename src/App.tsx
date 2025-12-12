@@ -50,16 +50,11 @@ if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
 }
 
-function LoadingSpinner() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    </div>
-  );
-}
+const PageLoader = () => (
+  <div className="flex h-screen w-full items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+  </div>
+);
 
 function ProtectedRoutes() {
   const { user } = useUser();
@@ -111,7 +106,7 @@ function AppContent() {
     }
   };
 
-  if (!isLoaded) return <LoadingSpinner />;
+  if (!isLoaded) return <PageLoader />;
 
   // Derived state for onboarding
   const needsOnboarding =
@@ -124,7 +119,7 @@ function AppContent() {
   return (
     <>
       <MetadataManager /> {/* Add MetadataManager here */}
-      <Suspense fallback={<LoadingSpinner />}>
+      <Suspense fallback={<PageLoader />}>
         <SignedOut>
           <Routes>
             <Route

@@ -1,4 +1,4 @@
-const path = require("path");
+const path = require("node:path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const ReactRefreshWebpackPlugin = require("@pmmmwh/react-refresh-webpack-plugin");
@@ -9,6 +9,7 @@ const { InjectManifest } = require("workbox-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const webpack = require("webpack");
+const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === "production";
@@ -105,33 +106,42 @@ module.exports = (env, argv) => {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB
       }),
       !isProduction && new ReactRefreshWebpackPlugin(),
+      isProduction &&
+        new BundleAnalyzerPlugin({
+          analyzerMode: "static",
+          openAnalyzer: false,
+        }),
     ].filter(Boolean),
     optimization: {
       minimize: isProduction,
       minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
       splitChunks: {
         chunks: "all",
-        maxInitialRequests: 25,
-        minSize: 20000,
+        maxInitialRequests: 25, // Allow more parallel requests
+        minSize: 20000, // Split chunks larger than 20kb
         cacheGroups: {
+          // 1. Separate Core React dependencies (cached forever usually)
           react: {
             test: /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
             name: "react-vendor",
             priority: 20,
             chunks: "all",
           },
+          // 2. Separate heavy UI libraries
           ui: {
             test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|@clerk)[\\/]/,
             name: "ui-vendor",
             priority: 15,
             chunks: "all",
           },
+          // 3. Separate large charting/map/pdf libs
           heavy: {
             test: /[\\/]node_modules[\\/](recharts|leaflet|react-leaflet|jspdf|jspdf-autotable)[\\/]/,
             name: "heavy-libs",
             priority: 15,
             chunks: "all",
           },
+          // 4. Everything else goes here
           defaultVendors: {
             test: /[\\/]node_modules[\\/]/,
             name: "vendors",
