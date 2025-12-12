@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 import { useState } from "react";
 
 export default function APIDebugChecker() {
@@ -9,7 +12,7 @@ export default function APIDebugChecker() {
   });
 
   const checkAPIKey = () => {
-    const key = import.meta.env.VITE_OPENWEATHER_API_KEY;
+    const key = process.env.VITE_OPENWEATHER_API_KEY;
     setResults((prev) => ({
       ...prev,
       apiKey: key ? `${key.substring(0, 8)}...` : "NOT SET",
@@ -27,9 +30,7 @@ export default function APIDebugChecker() {
     try {
       // Test Lagos coordinates
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/air_pollution?lat=6.5244&lon=3.3792&appid=${
-          import.meta.env.VITE_OPENWEATHER_API_KEY
-        }`
+        `https://api.openweathermap.org/data/2.5/air_pollution?lat=6.5244&lon=3.3792&appid=${process.env.VITE_OPENWEATHER_API_KEY}`
       );
 
       if (!response.ok) {
@@ -60,9 +61,7 @@ export default function APIDebugChecker() {
 
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/geo/1.0/direct?q=London&limit=1&appid=${
-          import.meta.env.VITE_OPENWEATHER_API_KEY
-        }`
+        `https://api.openweathermap.org/geo/1.0/direct?q=London&limit=1&appid=${process.env.VITE_OPENWEATHER_API_KEY}`
       );
 
       if (!response.ok) {

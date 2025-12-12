@@ -1,7 +1,7 @@
 class PollutionOverlayService {
-  private readonly API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+  private readonly API_KEY = process.env.VITE_OPENWEATHER_API_KEY;
   // If there's a separate key for maps, use that
-  private readonly MAP_KEY = import.meta.env.VITE_OPENWEATHER_MAP_LAYERS_API_KEY || this.API_KEY;
+  private readonly MAP_KEY = process.env.VITE_OPENWEATHER_MAP_LAYERS_API_KEY || this.API_KEY;
 
   getTileUrl(layer: string): string {
     // OpenWeatherMap 1.0 maps (Newer)

@@ -104,7 +104,7 @@ export async function fetchWAQIHistorical(cityName: string) {
   try {
     const response = await fetch(
       `https://api.waqi.info/feed/${cityName}/?token=${
-        import.meta.env.VITE_WAQI_TOKEN
+        process.env.VITE_WAQI_TOKEN
       }`
     );
 
@@ -134,7 +134,7 @@ export async function fetchNearbyStations(lat: number, lon: number) {
     const response = await fetch(
       `https://api.waqi.info/map/bounds/?latlng=${lat - 0.5},${lon - 0.5},${
         lat + 0.5
-      },${lon + 0.5}&token=${import.meta.env.VITE_WAQI_TOKEN}`
+      },${lon + 0.5}&token=${process.env.VITE_WAQI_TOKEN}`
     );
 
     if (!response.ok) throw new Error("WAQI API failed");

@@ -17,7 +17,7 @@ class WeatherService {
     this.api = axios.create({
       baseURL: "https://api.openweathermap.org/data/2.5",
       params: {
-        appid: import.meta.env.VITE_OPENWEATHER_API_KEY,
+        appid: process.env.VITE_OPENWEATHER_API_KEY,
         units: "metric",
       },
     });
@@ -47,7 +47,7 @@ class WeatherService {
     console.log(
       `[WeatherService] Fetching weather data for lat=${lat}, lng=${lng}`
     );
-    const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+    const apiKey = process.env.VITE_OPENWEATHER_API_KEY;
     if (!apiKey) {
       console.error("[WeatherService] Missing VITE_OPENWEATHER_API_KEY");
     } else {

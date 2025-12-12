@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import { useState, useEffect } from "react";
 import { useHistoricalAqi } from "../../../hooks/useHistoricalAqi";
 import { AqiPollutantLineChart } from "./AqiPollutantLineChart";
@@ -10,12 +12,14 @@ interface HistoricalChartsViewProps {
   location?: { lat: number; lng: number; name: string };
 }
 
-export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) => {
+export const HistoricalChartsView = ({
+  location,
+}: HistoricalChartsViewProps) => {
   const [stationId, setStationId] = useState<string | null>(null);
   const [days, setDays] = useState(7);
-  
+
   const { data: stations } = useMonitoringStations();
-  
+
   useEffect(() => {
     if (location) {
       if (stations && stations.length > 0) {
@@ -33,16 +37,15 @@ export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) =>
       {/* Controls Header - More compact padding */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border p-3 sm:p-4 rounded-xl shadow-sm">
         <div>
-          <h2 className="text-base sm:text-lg font-bold text-foreground">Historical Analysis</h2>
+          <h2 className="text-base sm:text-lg font-bold text-foreground">
+            Historical Analysis
+          </h2>
           <p className="text-xs sm:text-sm text-muted-foreground">
             {location ? `Trends for ${location.name}` : "Select a location"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <DateRangeSelector 
-            days={days} 
-            onRangeChange={setDays} 
-          />
+          <DateRangeSelector days={days} onRangeChange={setDays} />
         </div>
       </div>
 
@@ -58,11 +61,11 @@ export const HistoricalChartsView = ({ location }: HistoricalChartsViewProps) =>
           </Card>
         ) : data?.hourly && data.hourly.length > 0 ? (
           // Adjust chart container height for mobile
-          <div className="h-[300px] sm:h-[450px]"> 
-             <AqiPollutantLineChart
-               data={data.hourly}
-               title={`Trends (${days} Days)`}
-             />
+          <div className="h-[300px] sm:h-[450px]">
+            <AqiPollutantLineChart
+              data={data.hourly}
+              title={`Trends (${days} Days)`}
+            />
           </div>
         ) : (
           <Card>

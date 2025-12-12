@@ -27,7 +27,7 @@ export const subscribeToPush = async (): Promise<PushSubscription | null> => {
     }
 
     // Ensure VITE_VAPID_PUBLIC_KEY is defined in your .env
-    const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+    const VAPID_PUBLIC_KEY = process.env.VITE_VAPID_PUBLIC_KEY;
     if (!VAPID_PUBLIC_KEY) {
       console.error("VITE_VAPID_PUBLIC_KEY is not defined. Push notifications cannot be subscribed.");
       return null;

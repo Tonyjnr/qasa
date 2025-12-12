@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
@@ -25,7 +26,7 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
   const [activityLevel, setActivityLevel] = useState<
     "low" | "moderate" | "high"
   >("moderate");
-  
+
   // Derived state for risk result (auto-calculates)
   const [riskResult, setRiskResult] = useState<{
     score: number;
@@ -103,7 +104,8 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
           <Card className={COMPONENT_STYLES.card.base}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" /> Exposure Parameters
+                <Activity className="h-5 w-5 text-primary" /> Exposure
+                Parameters
               </CardTitle>
               <CardDescription>
                 Configure the scenario to estimate health risks.
@@ -169,7 +171,7 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
 
               {/* Age */}
               <div className="space-y-4">
-                 <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center">
                   <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                     <User className="h-4 w-4" /> Subject Age (Years)
                   </label>
@@ -177,7 +179,7 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
                     {age}
                   </span>
                 </div>
-                 <input
+                <input
                   type="range"
                   min="0"
                   max="100"
@@ -218,7 +220,9 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
           {/* Preset Scenarios */}
           <Card className={COMPONENT_STYLES.card.base}>
             <CardHeader>
-              <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Presets</CardTitle>
+              <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">
+                Presets
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <Button
@@ -284,7 +288,9 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
               className={cn(
                 COMPONENT_STYLES.card.base,
                 "h-full border-t-4 sticky top-4",
-                 riskResult.score > 50 ? "border-t-destructive" : "border-t-emerald-500"
+                riskResult.score > 50
+                  ? "border-t-destructive"
+                  : "border-t-emerald-500"
               )}
             >
               <CardHeader>
@@ -292,7 +298,10 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center py-4">
                 <div
-                  className={cn("text-6xl font-black mb-2 animate-in zoom-in duration-300", riskResult.color)}
+                  className={cn(
+                    "text-6xl font-black mb-2 animate-in zoom-in duration-300",
+                    riskResult.color
+                  )}
                 >
                   {riskResult.level}
                 </div>
@@ -308,8 +317,8 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
                 </div>
 
                 <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-4 mb-2 overflow-hidden relative">
-                   {/* Gradient background for bar */}
-                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-500 opacity-20"/>
+                  {/* Gradient background for bar */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-500 opacity-20" />
                   <div
                     className={cn(
                       "h-full transition-all duration-500 relative z-10",
@@ -331,9 +340,12 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
                     <Info className="h-4 w-4 text-primary" /> Recommendations
                   </h4>
                   {riskResult.recommendations.map((item, index) => (
-                    <div key={index} className="flex gap-3 items-start text-sm text-muted-foreground bg-background p-2 rounded border border-border">
-                        <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                        {item}
+                    <div
+                      key={index}
+                      className="flex gap-3 items-start text-sm text-muted-foreground bg-background p-2 rounded border border-border"
+                    >
+                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                      {item}
                     </div>
                   ))}
                 </div>

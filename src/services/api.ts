@@ -2,8 +2,8 @@
 import axios from "axios";
 
 // Validate API key
-const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
-const WAQI_TOKEN = import.meta.env.VITE_WAQI_TOKEN;
+const API_KEY = process.env.VITE_OPENWEATHER_API_KEY;
+const WAQI_TOKEN = process.env.VITE_WAQI_TOKEN;
 
 if (!API_KEY) {
   console.error(

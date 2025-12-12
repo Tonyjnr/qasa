@@ -1,3 +1,5 @@
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+/** biome-ignore-all lint/correctness/noUnusedFunctionParameters: <explanation> */
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -14,8 +16,9 @@ import {
 } from "../src/db/schema";
 import { desc, eq, and } from "drizzle-orm";
 
-import path from "path";
-import { fileURLToPath } from "url";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import fs from "node:fs";
 
 // Determine __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -41,7 +44,13 @@ app.get("/health", (req, res) => {
 // Serve static files in production
 if (process.env.NODE_ENV === "production") {
   const distPath = path.join(__dirname, "../dist");
-  app.use(express.static(distPath));
+  if (fs.existsSync(distPath)) {
+    app.use(express.static(distPath));
+  } else {
+    console.warn(
+      "⚠️  Production mode, but '../dist' directory not found. Static files will not be served."
+    );
+  }
 }
 
 // --- API ENDPOINTS ---
@@ -92,7 +101,7 @@ app.get("/api/monitoring-stations", async (req, res) => {
 
         return {
           ...station,
-          currentAqi: latest.length > 0 ? parseInt(latest[0].aqi) : null,
+          currentAqi: latest.length > 0 ? parseInt(latest[0].aqi, 10) : null,
           lastUpdated: latest.length > 0 ? latest[0].recordedAt : null,
         };
       })
@@ -282,7 +291,14 @@ if (process.env.NODE_ENV === "production") {
   app.get(/.*/, (req, res) => {
     if (!req.path.startsWith("/api")) {
       const distPath = path.join(__dirname, "../dist");
-      res.sendFile(path.join(distPath, "index.html"));
+      const indexPath = path.join(distPath, "index.html");
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res
+          .status(404)
+          .send("Application not built. Please run 'npm run build'.");
+      }
     }
   });
 }
