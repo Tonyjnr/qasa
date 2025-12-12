@@ -68,10 +68,10 @@ export const NavigationSidebar = ({
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                "group flex w-full cursor-pointer items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-left border border-transparent transition-all",
                 activeTab === item.id
-                  ? "bg-[#1e293b] text-white shadow-md border border-white/10 ring-1 ring-white/10"
-                  : "text-muted-foreground hover:bg-[#1e293b]/80 hover:text-white hover:pl-4"
+                  ? "bg-[#1e293b] text-white shadow-md border-white/10 ring-1 ring-white/10"
+                  : "text-muted-foreground hover:bg-slate-600/10 hover:border-slate-500/20 focus:outline-none focus:ring-2 focus:ring-primary/20"
               )}
             >
               <item.icon className="h-4 w-4" /> {item.label}
