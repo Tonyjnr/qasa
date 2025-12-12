@@ -6,11 +6,12 @@ import {
   SignedOut,
   useUser,
 } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
 import { Toaster } from "sonner";
 import { AuthDialog } from "./components/auth/AuthDialog";
 import { OnboardingFlow } from "./components/onboarding/OnboardingFlow";
 import { MetadataManager } from "./components/shared/MetadataManager"; // Import here
-import { ThemeProvider } from "./contexts/ThemeProvider";
+import { ThemeProvider, useTheme } from "./contexts/ThemeProvider";
 import APIDebugChecker from "./components/APIDebugChecker"; // Add this import
 import type { UserRole } from "./types";
 
@@ -151,24 +152,44 @@ function AppContent() {
   );
 }
 
-function App() {
+const ClerkProviderWithTheme = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const { theme } = useTheme();
+
   return (
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
       afterSignOutUrl="/"
       appearance={{
+        baseTheme:
+          theme === "dark" ||
+          (theme === "system" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches)
+            ? dark
+            : undefined,
         layout: {
           unsafe_disableDevelopmentModeWarnings: true,
         },
       }}
     >
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      {children}
+    </ClerkProvider>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <ClerkProviderWithTheme>
         <BrowserRouter>
           <Toaster position="top-center" />
           <AppContent />
         </BrowserRouter>
-      </ThemeProvider>
-    </ClerkProvider>
+      </ClerkProviderWithTheme>
+    </ThemeProvider>
   );
 }
 

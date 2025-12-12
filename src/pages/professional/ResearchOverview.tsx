@@ -10,7 +10,13 @@ import {
 import { Button } from "../../components/ui/button";
 import { StorageUsage } from "../../components/professional/research/StorageUsage";
 
-export const ResearchOverview = ({ datasets }: { datasets: Dataset[] }) => (
+export const ResearchOverview = ({
+  datasets,
+  onNavigateToUpload,
+}: {
+  datasets: Dataset[];
+  onNavigateToUpload: () => void;
+}) => (
   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 p-4 lg:p-8">
     {/* Stats Row */}
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -60,6 +66,7 @@ export const ResearchOverview = ({ datasets }: { datasets: Dataset[] }) => (
           <h2 className="text-lg font-bold text-foreground">Recent Datasets</h2>
           <Button
             size="sm"
+            onClick={onNavigateToUpload}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <UploadCloud className="mr-2 h-4 w-4" /> Upload New

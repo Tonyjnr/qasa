@@ -10,6 +10,7 @@ import {
   UploadCloud,
 } from "lucide-react";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { Link } from "react-router-dom";
 import { cn } from "../../lib/utils";
 
 interface NavigationSidebarProps {
@@ -42,7 +43,10 @@ export const NavigationSidebar = ({
       )}
     >
       <div className="flex h-20 items-center border-b border-border px-6 shrink-0">
-        <div className="flex items-center gap-2">
+        <Link
+          to="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="flex h-8 w-8 flex-col justify-center gap-[3px] overflow-hidden rounded-full bg-foreground/5 p-1.5 backdrop-blur-sm">
             <div className="h-1 w-full rounded-full bg-[#4285F4]" />
             <div className="h-1 w-[80%] rounded-full bg-[#26A69A]" />
@@ -54,7 +58,7 @@ export const NavigationSidebar = ({
               PRO
             </span>
           </span>
-        </div>
+        </Link>
       </div>
 
       <ScrollArea className="flex-1">
@@ -66,8 +70,8 @@ export const NavigationSidebar = ({
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 activeTab === item.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-slate-600/10 hover:text-foreground"
               )}
             >
               <item.icon className="h-4 w-4" /> {item.label}

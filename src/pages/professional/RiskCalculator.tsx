@@ -1,4 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
+/** biome-ignore-all lint/a11y/noSvgWithoutTitle: <explanation> */
 /** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
@@ -286,68 +287,101 @@ export const RiskCalculator = ({ data }: { data: AQIData }) => {
           {riskResult ? (
             <Card
               className={cn(
-                COMPONENT_STYLES.card.base,
-                "h-full border-t-4 sticky top-4",
+                "h-full border-t-4 sticky top-4 overflow-hidden",
                 riskResult.score > 50
                   ? "border-t-destructive"
                   : "border-t-emerald-500"
               )}
             >
-              <CardHeader>
-                <CardTitle>Assessment Result</CardTitle>
+              <CardHeader className="bg-muted/30 pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Assessment Result
+                </CardTitle>
               </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-4">
-                <div
-                  className={cn(
-                    "text-6xl font-black mb-2 animate-in zoom-in duration-300",
-                    riskResult.color
-                  )}
-                >
-                  {riskResult.level}
-                </div>
-                <div className="text-sm text-muted-foreground mb-6 uppercase tracking-widest font-semibold">
-                  Risk Category
+
+              <CardContent className="space-y-6 py-6">
+                {/* Score Circle */}
+                <div className="flex flex-col items-center justify-center text-center">
+                  <div className="relative w-32 h-32 mb-4">
+                    {/* Background Circle */}
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        fill="none"
+                        className="text-muted/20"
+                      />
+                      {/* Progress Circle */}
+                      <circle
+                        cx="64"
+                        cy="64"
+                        r="56"
+                        stroke="currentColor"
+                        strokeWidth="8"
+                        fill="none"
+                        strokeDasharray={`${
+                          (riskResult.score / 100) * 351.86
+                        } 351.86`}
+                        className={
+                          riskResult.score > 50
+                            ? "text-destructive"
+                            : "text-emerald-500"
+                        }
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center flex-col">
+                      <span className="text-3xl font-bold">
+                        {riskResult.score.toFixed(0)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        / 100
+                      </span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={cn("text-xl font-bold mb-1", riskResult.color)}
+                  >
+                    {riskResult.level} Risk
+                  </div>
                 </div>
 
-                {/* Dynamic Risk Summary Panel */}
-                <div className="rounded-lg border bg-muted/40 p-4 w-full mb-6">
-                  <p className="mt-1 text-sm text-muted-foreground">
+                {/* Description Box */}
+                <div className="rounded-lg bg-muted/50 p-4 border border-border/50">
+                  <p className="text-sm leading-relaxed text-foreground/80">
                     {riskResult.description}
                   </p>
                 </div>
 
-                <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-4 mb-2 overflow-hidden relative">
-                  {/* Gradient background for bar */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-500 opacity-20" />
-                  <div
-                    className={cn(
-                      "h-full transition-all duration-500 relative z-10",
-                      riskResult.score > 50
-                        ? "bg-destructive"
-                        : "bg-emerald-500"
-                    )}
-                    style={{
-                      width: `${Math.min(riskResult.score, 100)}%`,
-                    }}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground text-center mb-6">
-                  Risk Score: {riskResult.score.toFixed(1)} / 100
-                </p>
-
-                <div className="space-y-3 w-full">
-                  <h4 className="font-medium text-sm flex items-center gap-2">
-                    <Info className="h-4 w-4 text-primary" /> Recommendations
+                {/* Recommendations List */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary" />
+                    Recommendations
                   </h4>
-                  {riskResult.recommendations.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex gap-3 items-start text-sm text-muted-foreground bg-background p-2 rounded border border-border"
-                    >
-                      <span className="mt-1 h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                      {item}
-                    </div>
-                  ))}
+                  <div className="space-y-2">
+                    {riskResult.recommendations.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex gap-3 items-start text-sm p-2 rounded hover:bg-muted/50 transition-colors"
+                      >
+                        <span
+                          className={cn(
+                            "mt-1.5 h-1.5 w-1.5 rounded-full shrink-0",
+                            riskResult.score > 50
+                              ? "bg-destructive"
+                              : "bg-emerald-500"
+                          )}
+                        />
+                        <span className="text-muted-foreground">{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>

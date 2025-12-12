@@ -6,10 +6,18 @@
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 import { useState, useCallback, useEffect } from "react";
-import { UploadCloud, FileText, Trash2, Loader2, Database } from "lucide-react";
+import {
+  UploadCloud,
+  FileText,
+  Trash2,
+  Loader2,
+  Database,
+  Upload,
+} from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
 import { cn } from "../../lib/utils";
 import { COMPONENT_STYLES } from "../../lib/designTokens";
 import {
@@ -139,6 +147,50 @@ export const DataUpload = () => {
         </div>
       </div>
 
+      {/* New Summary Cards Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <Card className="bg-card border-border">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Datasets</p>
+              <p className="text-2xl font-bold text-foreground">
+                {files.length}
+              </p>
+            </div>
+            <Database className="h-8 w-8 text-primary opacity-20" />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total Size</p>
+              <p className="text-2xl font-bold text-foreground">
+                {(
+                  files.reduce((sum, f) => sum + (f.size || 0), 0) / 1024
+                ).toFixed(1)}{" "}
+                KB
+              </p>
+            </div>
+            <FileText className="h-8 w-8 text-emerald-500 opacity-20" />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card border-border">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Last Upload</p>
+              <p className="text-sm font-medium text-foreground">
+                {files[0]?.createdAt
+                  ? new Date(files[0].createdAt).toLocaleDateString()
+                  : "N/A"}
+              </p>
+            </div>
+            <Upload className="h-8 w-8 text-orange-500 opacity-20" />
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Dropzone */}
       <div
         {...getRootProps()}
@@ -164,7 +216,7 @@ export const DataUpload = () => {
         </Button>
       </div>
 
-      {/* List */}
+      {/* Updated File List with Actions */}
       <div className="space-y-4">
         <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
           Stored Datasets
@@ -179,59 +231,41 @@ export const DataUpload = () => {
 
         <div className="bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
           {files.map((file) => (
-            <div key={file.id} className="p-4 flex items-center gap-4">
-              <div
-                className={cn(
-                  "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
-                  file.status === "error"
-                    ? "bg-destructive/10"
-                    : "bg-emerald-500/10"
-                )}
-              >
-                {file.status === "uploading" ? (
-                  <Loader2 className="h-5 w-5 text-primary animate-spin" />
-                ) : (
-                  <FileText
-                    className={cn(
-                      "h-5 w-5",
-                      file.status === "error"
-                        ? "text-destructive"
-                        : "text-emerald-600"
-                    )}
-                  />
-                )}
+            <div
+              key={file.id}
+              className="p-4 flex items-center gap-4 hover:bg-muted/50 transition-colors"
+            >
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                <FileText className="h-5 w-5" />
               </div>
-
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
+                <h4 className="font-medium text-foreground truncate">
                   {file.name}
-                </p>
-                <div className="flex gap-2 text-xs text-muted-foreground">
+                </h4>
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span>{(file.size! / 1024).toFixed(1)} KB</span>
+                  <span>•</span>
                   <span>
-                    {file.status === "uploading"
-                      ? "Uploading..."
-                      : file.status === "error"
-                      ? "Failed"
-                      : "Ready"}
+                    {file.createdAt
+                      ? new Date(file.createdAt).toLocaleDateString()
+                      : "Unknown"}
                   </span>
-                  {file.size && (
-                    <span>• {(file.size / 1024).toFixed(1)} KB</span>
-                  )}
-                  {file.createdAt && (
-                    <span>
-                      • {new Date(file.createdAt).toLocaleDateString()}
-                    </span>
-                  )}
                 </div>
               </div>
-
-              <div className="shrink-0">
-                {file.status === "completed" && typeof file.id === "number" && (
+              <div className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    "px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500"
+                  )}
+                >
+                  Active
+                </span>
+                {typeof file.id === "number" && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(file.id as number)}
-                    className="text-muted-foreground hover:text-destructive"
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

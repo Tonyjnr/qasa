@@ -1,4 +1,4 @@
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
+/** biome-ignore-all assist/source/organizeImports: organize imports conflict */
 import { UserProfile } from "@clerk/clerk-react";
 import { RoleToggle } from "../components/profile/RoleToggle";
 import { AlertSettings } from "../components/professional/alerts/AlertSettings";
@@ -17,7 +17,12 @@ export const ProfileView = () => {
             path="/profile"
             routing="path"
             appearance={{
-              baseTheme: theme === "dark" ? dark : undefined,
+              baseTheme:
+                theme === "dark" ||
+                (theme === "system" &&
+                  window.matchMedia("(prefers-color-scheme: dark)").matches)
+                  ? dark
+                  : undefined,
               elements: {
                 rootBox: "w-full",
                 card: "bg-card border border-border shadow-none rounded-xl",

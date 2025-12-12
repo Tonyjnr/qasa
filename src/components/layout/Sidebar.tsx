@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/complexity/useOptionalChain: <explanation> */
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 import {
   ShieldCheck,
   ShieldAlert,
@@ -56,20 +59,16 @@ export const Sidebar = ({
 }: SidebarProps) => {
   const status = getAQIStatus(data.aqi);
   const StatusIcon = status.icon;
-  const colors = getAQIColors(data.aqi);
 
   return (
     <aside
       className={cn(
-        "relative flex h-full w-full flex-col p-6 shadow-xl",
+        "relative flex h-full w-full flex-col p-6",
         "border-l border-border",
         "bg-background",
         className
       )}
     >
-      {/* Decorative Gradients */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent opacity-50" />
-
       {/* Main Content */}
       <div className="relative z-10 flex flex-1 flex-col pt-12 px-2 text-left">
         <div>
@@ -102,10 +101,7 @@ export const Sidebar = ({
 
           <div className="mt-6 flex items-center justify-center gap-3">
             <div
-              className={cn(
-                "h-3 w-3 rounded-full animate-pulse",
-                colors.dotClass
-              )}
+              className={cn("h-3 w-3 rounded-full animate-pulse", "bg-red-500")}
             />
             <p className="text-lg font-medium text-muted-foreground">
               Primary Pollutant:{" "}
@@ -183,7 +179,7 @@ export const Sidebar = ({
                 className={cn(
                   "group flex w-full cursor-pointer items-center gap-4 rounded-lg p-2 text-left",
                   "border border-transparent transition-all",
-                  "hover:bg-accent hover:text-accent-foreground hover:border-border",
+                  "hover:bg-slate-600/10 hover:border-slate-500/20",
                   "focus:outline-none focus:ring-2 focus:ring-primary/20"
                 )}
               >
@@ -191,7 +187,7 @@ export const Sidebar = ({
                   className={cn(
                     "flex h-10 w-10 items-center justify-center rounded-md transition-colors",
                     "bg-muted text-muted-foreground",
-                    "group-hover:bg-primary group-hover:text-primary-foreground"
+                    "group-hover:bg-slate-700 group-hover:text-white"
                   )}
                 >
                   <MapPin className="h-5 w-5" />

@@ -254,7 +254,12 @@ export default function ProfessionalDashboard() {
       )}
       {activeTab === "city-rankings" && <CityRankingTable />}
 
-      {activeTab === "overview" && <ResearchOverview datasets={datasets} />}
+      {activeTab === "overview" && (
+        <ResearchOverview
+          datasets={datasets}
+          onNavigateToUpload={() => setActiveTab("upload")}
+        />
+      )}
       {activeTab === "risk" && <RiskCalculator data={data} />}
       {activeTab === "upload" && <DataUpload />}
       {activeTab === "reports" && <Reports />}
