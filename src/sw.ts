@@ -16,8 +16,8 @@ self.addEventListener("push", (event) => {
   const title = data.title ?? "QASA Alert";
   const options: NotificationOptions = {
     body: data.body,
-    icon: "/qasa-icon.svg",
-    badge: "/qasa-icon.svg",
+    icon: "/qasa-icon.png",
+    badge: "/qasa-icon.png",
     data: data.url ? { url: data.url } : {},
   };
 

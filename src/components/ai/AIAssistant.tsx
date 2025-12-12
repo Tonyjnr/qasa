@@ -1,25 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
+/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 /** biome-ignore-all lint/a11y/noSvgWithoutTitle: <explanation> */
-import {
-  useState,
-  useRef,
-  useEffect,
-  type Key,
-  type JSXElementConstructor,
-  type ReactElement,
-  type ReactNode,
-  type ReactPortal,
-} from "react";
+import { useState, useRef, useEffect } from "react";
 import { Bot, X, Sparkles, FileText, Send } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
-import { useChat } from "ai/react";
+import { useChat } from "@ai-sdk/react";
+import type { UIMessage } from "ai";
 
 interface AIAssistantProps {
   mode: "resident" | "professional";
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   contextData?: any;
 }
 
@@ -28,24 +21,39 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } =
-    useChat({
-      api: "/api/chat",
-      body: {
-        mode,
-        contextData,
+  const { messages, sendMessage, status } = useChat({
+    messages: [
+      {
+        id: "welcome",
+        role: "assistant",
+        parts: [
+          {
+            type: "text",
+            text:
+              mode === "resident"
+                ? "Hi! I'm QASA AI. I can check local air quality for you. Try asking 'Can I go for a run?'"
+                : "QASA Research Assistant online. I can help analyze your datasets or generate risk reports.",
+          },
+        ],
       },
-      initialMessages: [
-        {
-          id: "welcome",
-          role: "assistant",
-          content:
-            mode === "resident"
-              ? "Hi! I'm QASA AI. I can check local air quality for you. Try asking 'Can I go for a run?'"
-              : "QASA Research Assistant online. I can help analyze your datasets or generate risk reports.",
-        },
-      ],
-    });
+    ],
+  });
+
+  const [input, setInput] = useState("");
+  const isLoading = status === "submitted" || status === "streaming";
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim()) return;
+    sendMessage({ text: input }, { body: { mode, contextData } });
+    setInput("");
+  };
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -147,86 +155,55 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
             ref={scrollRef}
             className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/50 dark:bg-slate-950/50"
           >
-            {messages.map(
-              (msg: {
-                id: Key | null | undefined;
-                role: string;
-                content:
-                  | string
-                  | number
-                  | bigint
-                  | boolean
-                  | ReactElement<unknown, string | JSXElementConstructor<any>>
-                  | Iterable<ReactNode>
-                  | ReactPortal
-                  | Promise<
-                      | string
-                      | number
-                      | bigint
-                      | boolean
-                      | ReactPortal
-                      | ReactElement<
-                          unknown,
-                          string | JSXElementConstructor<any>
-                        >
-                      | Iterable<ReactNode>
-                      | null
-                      | undefined
-                    >
-                  | null
-                  | undefined;
-                toolInvocations: {
-                  toolName: string;
-                  state: string;
-                  toolCallId: Key | null | undefined;
-                }[];
-              }) => (
+            {messages.map((msg: UIMessage) => (
+              <div
+                key={msg.id}
+                className={cn(
+                  "flex w-full",
+                  msg.role === "user" ? "justify-end" : "justify-start"
+                )}
+              >
                 <div
-                  key={msg.id}
                   className={cn(
-                    "flex w-full",
-                    msg.role === "user" ? "justify-end" : "justify-start"
+                    "max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm",
+                    msg.role === "user"
+                      ? "bg-blue-600 text-white rounded-br-none"
+                      : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none"
                   )}
                 >
-                  <div
-                    className={cn(
-                      "max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm",
-                      msg.role === "user"
-                        ? "bg-blue-600 text-white rounded-br-none"
-                        : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-none"
-                    )}
-                  >
-                    {msg.content}
-                    {/* Tool output rendering (e.g. generated reports) */}
-                    {msg.toolInvocations?.map(
-                      (tool: {
-                        toolName: string;
-                        state: string;
-                        toolCallId: Key | null | undefined;
-                      }) => {
-                        if (
-                          tool.toolName === "generateReport" &&
-                          tool.state === "result"
-                        ) {
-                          return (
-                            <div
-                              key={tool.toolCallId}
-                              className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700 flex items-center gap-2"
-                            >
-                              <FileText className="h-4 w-4 text-red-500" />
-                              <span className="text-xs font-medium">
-                                Report Generated
-                              </span>
-                            </div>
-                          );
-                        }
-                        return null;
+                  {msg.parts.map((part, index) => {
+                    if (part.type === "text") {
+                      return <span key={index}>{part.text}</span>;
+                    }
+                    if (
+                      part.type === "tool-invocation" ||
+                      part.type === "tool-generateReport" ||
+                      (part.type === "dynamic-tool" &&
+                        part.toolName === "generateReport")
+                    ) {
+                      const toolPart = part as any;
+                      if (
+                        toolPart.state === "result" ||
+                        toolPart.state === "output-available"
+                      ) {
+                        return (
+                          <div
+                            key={toolPart.toolCallId || index}
+                            className="mt-2 p-2 bg-slate-100 dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700 flex items-center gap-2"
+                          >
+                            <FileText className="h-4 w-4 text-red-500" />
+                            <span className="text-xs font-medium">
+                              Report Generated
+                            </span>
+                          </div>
+                        );
                       }
-                    )}
-                  </div>
+                    }
+                    return null;
+                  })}
                 </div>
-              )
-            )}
+              </div>
+            ))}
             {isLoading && (
               <div className="flex justify-start">
                 <div className="bg-white dark:bg-slate-800 px-4 py-3 rounded-2xl rounded-bl-none shadow-sm border border-slate-200 dark:border-slate-700">

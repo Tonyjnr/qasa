@@ -111,11 +111,32 @@ module.exports = (env, argv) => {
       minimizer: [new TerserPlugin(), new CssMinimizerPlugin()],
       splitChunks: {
         chunks: "all",
+        maxInitialRequests: 25,
+        minSize: 20000,
         cacheGroups: {
-          vendor: {
+          react: {
+            test: /[\\/]node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
+            name: "react-vendor",
+            priority: 20,
+            chunks: "all",
+          },
+          ui: {
+            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|@clerk)[\\/]/,
+            name: "ui-vendor",
+            priority: 15,
+            chunks: "all",
+          },
+          heavy: {
+            test: /[\\/]node_modules[\\/](recharts|leaflet|react-leaflet|jspdf|jspdf-autotable)[\\/]/,
+            name: "heavy-libs",
+            priority: 15,
+            chunks: "all",
+          },
+          defaultVendors: {
             test: /[\\/]node_modules[\\/]/,
             name: "vendors",
-            chunks: "all",
+            priority: -10,
+            reuseExistingChunk: true,
           },
         },
       },

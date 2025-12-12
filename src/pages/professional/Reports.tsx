@@ -98,7 +98,7 @@ export const Reports = () => {
 
     const headers = Object.keys(data[0]).join(",");
     const rows = data.map((obj) => Object.values(obj).join(",")).join("\n");
-    const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows;
+    const csvContent = `data:text/csv;charset=utf-8,${headers}\n${rows}`;
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -185,37 +185,41 @@ export const Reports = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Date Range Picker */}
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Date Range Picker - Spans 1 column on large screens */}
+            <div className="space-y-3 flex flex-col">
               <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" /> Date
                 Range
               </Label>
-              <DateRangePicker date={dateRange} setDate={setDateRange} />
+              <div className="flex-1 w-full">
+                <DateRangePicker date={dateRange} setDate={setDateRange} />
+              </div>
             </div>
 
             {/* Location Selector */}
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col">
               <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" /> Location
               </Label>
-              <LocationSelector
-                selectedId={selectedLocationId}
-                onSelect={(id, name) => {
-                  setSelectedLocationId(id);
-                  setSelectedLocationName(name);
-                }}
-              />
+              <div className="flex-1">
+                <LocationSelector
+                  selectedId={selectedLocationId}
+                  onSelect={(id, name) => {
+                    setSelectedLocationId(id);
+                    setSelectedLocationName(name);
+                  }}
+                />
+              </div>
             </div>
 
             {/* Pollutant Selector */}
-            <div className="space-y-3">
+            <div className="space-y-3 flex flex-col">
               <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />{" "}
                 Pollutants
               </Label>
-              <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+              <div className="grid grid-cols-2 gap-3 p-3 bg-muted/30 rounded-lg border border-border/50 h-full max-h-[120px] overflow-y-auto">
                 {ALL_POLLUTANTS.map((pollutant) => (
                   <div
                     key={pollutant.value}

@@ -220,7 +220,7 @@ export default function ProfessionalDashboard() {
                 {location.name || "Live Monitoring Network"}
               </h2>
               {/* Optional: Add a badge indicating source */}
-              <span className="text-[10px] bg-accent px-2 py-1 rounded text-muted-foreground uppercase tracking-wider">
+              <span className="text-[10px] bg-red-500 px-2 py-1 rounded text-white uppercase tracking-wider">
                 Live
               </span>
             </div>

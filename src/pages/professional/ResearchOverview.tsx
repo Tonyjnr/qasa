@@ -1,5 +1,5 @@
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
-import { FileText, UploadCloud, Database } from "lucide-react";
+import { FileText, UploadCloud, Database, Sparkles } from "lucide-react";
 import type { Dataset } from "../../services/apiService";
 import {
   Card,
@@ -107,9 +107,10 @@ export const ResearchOverview = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-primary hover:text-primary hover:bg-primary/10"
+                      className="text-primary hover:text-primary hover:bg-primary/10 transition-all duration-200"
                     >
-                      Analyze
+                      <Sparkles className="mr-2 h-3.5 w-3.5 text-indigo-500" />
+                      Analyze with AI
                     </Button>
                   </td>
                 </tr>

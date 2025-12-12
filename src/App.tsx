@@ -20,7 +20,9 @@ const AuthView = lazy(() =>
   import("./pages/AuthView").then((m) => ({ default: m.AuthView }))
 );
 const ResidentDashboard = lazy(() =>
-  import("./pages/resident/Dashboard").then((m) => ({ default: m.Dashboard }))
+  import("./pages/resident/Dashboard").then((module) => ({
+    default: module.Dashboard,
+  }))
 );
 const MapView = lazy(() =>
   import("./pages/resident/MapView").then((m) => ({ default: m.MapView }))
@@ -37,10 +39,8 @@ const ProfileView = lazy(() =>
   import("./pages/ProfileView").then((m) => ({ default: m.ProfileView }))
 );
 
-const ProfessionalDashboard = lazy(() =>
-  import("./pages/professional/Dashboard").then((m) => ({
-    default: m.default,
-  }))
+const ProfessionalDashboard = lazy(
+  () => import("./pages/professional/Dashboard")
 );
 
 const PUBLISHABLE_KEY = process.env.VITE_CLERK_PUBLISHABLE_KEY;
