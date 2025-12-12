@@ -36,13 +36,26 @@ export const fetchAirQuality = async (
           params: { lat, lon: lng, limit: 1 },
         });
         if (geoRes.data && geoRes.data.length > 0) {
+          console.log("[fetchAirQuality] Reverse geocoding successful:", geoRes.data[0]);
           const { name, country } = geoRes.data[0];
           resolvedName = `${name}, ${country}`;
+        } else {
+          console.warn("[fetchAirQuality] Reverse geocoding returned no results for coordinates.");
         }
       } catch (geoError) {
         console.warn("Reverse geocoding failed, using coordinates", geoError);
         resolvedName = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
       }
+    }
+
+    if (
+      resolvedName === "Selected Location" ||
+      resolvedName === "Unknown" ||
+      resolvedName === `${lat.toFixed(2)}, ${lng.toFixed(2)}`
+    ) {
+      console.warn(
+        `[fetchAirQuality] Resolved name '${resolvedName}' still looks generic. Check geocoding logic or input.`
+      );
     }
 
     // 1. Current Pollution

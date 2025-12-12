@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 import { useState, useEffect } from "react";
@@ -319,17 +320,11 @@ export default function ProfessionalDashboard() {
               />
               <div
                 className={cn(
-                  "absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out",
+                  "absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg overflow-hidden",
                   showSearchResults && searchResults.length > 0
-                    ? "opacity-100"
-                    : "opacity-0 pointer-events-none"
+                    ? "block animate-in fade-in zoom-in-95 duration-200"
+                    : "hidden"
                 )}
-                style={{
-                  height:
-                    showSearchResults && searchResults.length > 0
-                      ? Math.min(searchResults.length * 40 + 50, 300)
-                      : 0,
-                }}
               >
                 <Command>
                   <CommandList className="max-h-[300px] overflow-y-auto">
@@ -339,7 +334,7 @@ export default function ProfessionalDashboard() {
                     <CommandGroup heading="Search Results">
                       {searchResults.map((item, index) => (
                         <CommandItem
-                          key={item.lat + "" + item.lng}
+                          key={`${item.lat}${item.lng}`}
                           onSelect={() =>
                             handleLocationSelect(
                               item.lat,
@@ -458,17 +453,11 @@ export default function ProfessionalDashboard() {
                   />
                   <div
                     className={cn(
-                      "absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg overflow-hidden transition-all duration-300 ease-in-out",
+                      "absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg overflow-hidden",
                       showSearchResults && searchResults.length > 0
-                        ? "opacity-100"
-                        : "opacity-0 pointer-events-none"
+                        ? "block animate-in fade-in zoom-in-95 duration-200"
+                        : "hidden"
                     )}
-                    style={{
-                      height:
-                        showSearchResults && searchResults.length > 0
-                          ? Math.min(searchResults.length * 40 + 50, 300)
-                          : 0,
-                    }}
                   >
                     <Command>
                       <CommandList className="max-h-[300px] overflow-y-auto">
@@ -478,7 +467,7 @@ export default function ProfessionalDashboard() {
                         <CommandGroup heading="Search Results">
                           {searchResults.map((item, index) => (
                             <CommandItem
-                              key={item.lat + "" + item.lng}
+                              key={`${item.lat}${item.lng}`}
                               onSelect={() =>
                                 handleLocationSelect(
                                   item.lat,

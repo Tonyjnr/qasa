@@ -111,11 +111,7 @@ export function useAirQuality(
                 "[useAirQuality] Geolocation success:",
                 position.coords
               );
-              refresh(
-                position.coords.latitude,
-                position.coords.longitude,
-                "Your Location"
-              );
+              refresh(position.coords.latitude, position.coords.longitude);
             }
           },
           (geoError) => {

@@ -25,31 +25,34 @@ export default defineConfig({
           }
         ]
       },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api'),
-            handler: 'NetworkOnly',
-            options: {
-              cacheName: 'api-cache',
-              backgroundSync: {
-                name: 'api-queue',
-                options: {
-                  maxRetentionTime: 24 * 60
+            workbox: {
+              globPatterns: ['**/*.{js,css,html,ico,png,svg,ts}'],
+              runtimeCaching: [
+                {
+                  urlPattern: ({ url }) => url.pathname.startsWith('/api'),
+                  handler: 'NetworkOnly',
+                  options: {
+                    cacheName: 'api-cache',
+                    backgroundSync: {
+                      name: 'api-queue',
+                      options: {
+                        maxRetentionTime: 24 * 60
+                      }
+                    }
+                  }
+                },
+                {
+                  urlPattern: ({ url }) => url.hostname.includes('openweathermap.org') || url.hostname.includes('waqi.info'),
+                  handler: 'NetworkOnly',
+                  options: {
+                    cacheName: 'external-api-cache'
+                  }
                 }
-              }
-            }
-          },
-          {
-            urlPattern: ({ url }) => url.hostname.includes('openweathermap.org') || url.hostname.includes('waqi.info'),
-            handler: 'NetworkOnly',
-            options: {
-              cacheName: 'external-api-cache'
-            }
-          }
-        ]
-      }
+              ]
+            },
+            strategies: 'injectManifest', // Use custom service worker
+            srcDir: 'src', // Source directory for service worker
+            filename: 'sw.ts', // Custom service worker filename
     })
   ],
 })

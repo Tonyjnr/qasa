@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
-import { getAqiColor, getAqiCategory } from "../../../lib/aqiUtils";
+import { getAqiStatusStyles } from "../../../lib/aqiUtils";
 import { fetchGlobalCityAQI } from "../../../services/realDataService";
 import { Loader2 } from "lucide-react";
 
@@ -94,8 +94,7 @@ export const CityRankingTable = () => {
             >
               {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                 const city = rankings[virtualRow.index];
-                const aqiColor = getAqiColor(city.aqi);
-                const category = getAqiCategory(city.aqi);
+                const { category, badgeClasses, textColor, icon: StatusIcon } = getAqiStatusStyles(city.aqi);
 
                 return (
                   <div
@@ -123,8 +122,7 @@ export const CityRankingTable = () => {
 
                     <div className="w-32 text-center flex justify-center">
                       <div 
-                        className="font-black text-xl px-3 py-1 rounded-lg bg-background/50 border border-border shadow-sm min-w-[3.5rem]"
-                        style={{ color: aqiColor }}
+                        className={`font-black text-xl px-3 py-1 rounded-lg bg-background/50 border border-border shadow-sm min-w-[3.5rem] ${textColor}`}
                       >
                         {city.aqi}
                       </div>
@@ -133,10 +131,10 @@ export const CityRankingTable = () => {
                     <div className="w-40 pl-4 hidden sm:block">
                       <div className="flex flex-col gap-1">
                         <span
-                          className="px-3 py-1.5 rounded-md text-white font-bold text-[10px] uppercase w-full text-center tracking-wide shadow-sm truncate"
-                          style={{ backgroundColor: aqiColor }}
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium border ${badgeClasses} `}
                         >
-                          {category}
+                          <StatusIcon className="h-3 w-3" />
+                          <span>{category}</span>
                         </span>
                       </div>
                     </div>

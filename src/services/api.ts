@@ -114,6 +114,8 @@ export const searchLocation = async (query: string) => {
       params: { q: query.trim(), limit: 5 },
     });
 
+    console.log("[searchLocation] Raw response:", JSON.stringify(response.data));
+
     if (!response.data || response.data.length === 0) {
       throw new Error(`No results found for "${query}"`);
     }
@@ -122,7 +124,7 @@ export const searchLocation = async (query: string) => {
       name: item.name,
       lat: item.lat,
       lng: item.lon,
-      country: item.country,
+      country: item.country ? item.country.toUpperCase() : "Unknown", // Normalize country
       state: item.state,
       displayName: item.state
         ? `${item.name}, ${item.state}, ${item.country}`

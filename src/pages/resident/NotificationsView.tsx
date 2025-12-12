@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { apiService, type Notification } from "../../services/apiService";
 import { formatDistanceToNow } from "date-fns";
+import { Switch } from "../../components/ui/switch";
+import { Label } from "../../components/ui/label";
+import { requestNotificationPermission, subscribeToPush } from "../../services/notifications";
 
 export const NotificationsView = () => {
   const { data, isLoading, setLocation } = useAirQuality({
@@ -13,6 +16,10 @@ export const NotificationsView = () => {
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(true);
+  const [airQualityAlertsEnabled, setAirQualityAlertsEnabled] = useState(false);
+  const [dataUpdatesEnabled, setDataUpdatesEnabled] = useState(false);
+  const [userSpecificNotificationsEnabled, setUserSpecificNotificationsEnabled] = useState(false);
+  const [isPushSubscribed, setIsPushSubscribed] = useState(false);
 
   useEffect(() => {
     async function fetchNotifications() {
@@ -27,7 +34,38 @@ export const NotificationsView = () => {
       }
     }
     fetchNotifications();
+
+    // Check initial push subscription status
+    navigator.serviceWorker.ready.then(registration => {
+      registration.pushManager.getSubscription().then(subscription => {
+        setIsPushSubscribed(!!subscription);
+      });
+    });
   }, []);
+
+  const handlePushSubscriptionChange = async (checked: boolean) => {
+    if (checked) {
+      const permission = await requestNotificationPermission();
+      if (permission === "granted") {
+        const subscription = await subscribeToPush();
+        setIsPushSubscribed(!!subscription);
+        if (subscription) {
+          toast.success("Subscribed to push notifications!");
+        } else {
+          toast.error("Failed to subscribe to push notifications.");
+        }
+      } else {
+        toast.error("Notification permission denied.");
+        // If permission is denied, revert the switch
+        setIsPushSubscribed(false);
+      }
+    } else {
+      // Logic for unsubscribing, not implemented in notifications.ts yet, but placeholder is there
+      // await unsubscribeFromPush();
+      setIsPushSubscribed(false);
+      toast.info("Push notifications disabled.");
+    }
+  };
 
   const handleLocationSelect = (lat: number, lng: number, name: string) => {
     setLocation(lat, lng);
@@ -48,6 +86,91 @@ export const NotificationsView = () => {
         <h1 className="text-3xl font-bold text-slate-900 mb-8">
           Notifications
         </h1>
+
+        {/* Notification Preferences Section */}
+        <section className="mb-8 p-6 bg-white rounded-xl shadow-sm border border-slate-200 max-w-2xl">
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Notification Preferences</h2>
+          <p className="text-sm text-slate-600 mb-6">
+            Manage your notification settings. You can choose which types of alerts you'd like to receive.
+          </p>
+
+          <div className="space-y-5">
+            {/* Master Push Notification Toggle */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="push-notifications" className="flex flex-col space-y-1">
+                <span className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Enable Push Notifications
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  Receive alerts directly to your device (requires browser permission).
+                </span>
+              </Label>
+              <Switch
+                id="push-notifications"
+                checked={isPushSubscribed}
+                onCheckedChange={handlePushSubscriptionChange}
+              />
+            </div>
+
+            {/* Individual Notification Type Toggles (enabled only if push is subscribed) */}
+            <div className={`space-y-5 ${!isPushSubscribed ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="air-quality-alerts" className="flex flex-col space-y-1">
+                  <span className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Air Quality Alerts
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Get notified when air quality in your selected locations changes significantly.
+                  </span>
+                </Label>
+                <Switch
+                  id="air-quality-alerts"
+                  checked={airQualityAlertsEnabled}
+                  onCheckedChange={setAirQualityAlertsEnabled}
+                  disabled={!isPushSubscribed}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="data-updates" className="flex flex-col space-y-1">
+                  <span className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    New Data Updates
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Receive updates on new data sources or improved air quality models.
+                  </span>
+                </Label>
+                <Switch
+                  id="data-updates"
+                  checked={dataUpdatesEnabled}
+                  onCheckedChange={setDataUpdatesEnabled}
+                  disabled={!isPushSubscribed}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label htmlFor="user-specific-notifications" className="flex flex-col space-y-1">
+                  <span className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    User-Specific Notifications
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Personalized notifications based on your preferences and activity.
+                  </span>
+                </Label>
+                <Switch
+                  id="user-specific-notifications"
+                  checked={userSpecificNotificationsEnabled}
+                  onCheckedChange={setUserSpecificNotificationsEnabled}
+                  disabled={!isPushSubscribed}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <h2 className="text-xl font-bold text-slate-900 mb-4 max-w-2xl">
+          Recent Notifications
+        </h2>
 
         <div className="space-y-4 max-w-2xl">
           {loadingNotifications ? (

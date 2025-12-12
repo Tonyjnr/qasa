@@ -1,9 +1,6 @@
-import {
-  FileText,
-  UploadCloud,
-  Database,
-} from "lucide-react";
-import { type Dataset } from "../../services/apiService";
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+import { FileText, UploadCloud, Database } from "lucide-react";
+import type { Dataset } from "../../services/apiService";
 import {
   Card,
   CardContent,

@@ -2,102 +2,96 @@
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 import { useState, useCallback, useEffect } from "react";
-import { UploadCloud, FileText, CheckCircle2, Trash2 } from "lucide-react";
+import { UploadCloud, FileText, Trash2, Loader2, Database } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
 import { COMPONENT_STYLES } from "../../lib/designTokens";
-import { saveUpload, getUploads } from "../../lib/db";
+import { saveDataset, listDatasets, deleteDataset } from "../../lib/uploadStore";
 
-interface UploadedFile {
-  id: string;
-  file: File; // or Blob
-  progress: number;
+interface UploadedFileState {
+  id: string | number; // Can be string (temp) or number (db)
+  file?: File;
+  name: string;
+  size?: number;
   status: "uploading" | "completed" | "error";
-  uploadedAt?: Date;
+  createdAt?: string;
 }
 
 export const DataUpload = () => {
-  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [files, setFiles] = useState<UploadedFileState[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load persisted uploads on mount
+  const refreshList = async () => {
+    try {
+      const savedDatasets = await listDatasets();
+      const mapped = savedDatasets.map((ds) => ({
+        id: ds.id!, // DB id
+        name: ds.name,
+        status: "completed" as const,
+        createdAt: ds.createdAt,
+        size: JSON.stringify(ds.content).length, // Approximate size
+      }));
+      // Merge with currently uploading files? No, just replace completed ones.
+      // Actually, simplest is to just show DB state + active uploads separate if needed.
+      // But for simplicity, let's just use the DB state as the source of truth for "Completed".
+      setFiles((prev) => {
+        const uploading = prev.filter(f => f.status === "uploading");
+        return [...uploading, ...mapped];
+      });
+    } catch (error) {
+      console.error("Failed to load uploads:", error);
+      toast.error("Failed to load saved datasets");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load on mount
   useEffect(() => {
-    const loadUploads = async () => {
-      try {
-        const saved = await getUploads();
-        if (saved && saved.length > 0) {
-          // Map DB objects back to UI state
-          setFiles(
-            saved.map((item: any) => ({
-              id: item.id,
-              file: item.file || new File([], item.name || "Unknown"), // Fallback if file missing
-              progress: 100,
-              status: "completed",
-              uploadedAt: item.uploadedAt,
-            }))
-          );
-        }
-      } catch (error) {
-        console.error("Failed to load uploads:", error);
-      }
-    };
-    loadUploads();
+    refreshList();
   }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles = acceptedFiles.map((file) => ({
-      id: Math.random().toString(36).substring(7),
+    // 1. Add to UI as uploading
+    const newFiles = acceptedFiles.map(file => ({
+      id: Math.random().toString(36), // Temp ID
       file,
-      progress: 0,
-      status: "uploading" as const,
-      uploadedAt: new Date(),
+      name: file.name,
+      size: file.size,
+      status: "uploading" as const
     }));
 
-    setFiles((prev) => [...prev, ...newFiles]);
+    setFiles(prev => [...newFiles, ...prev]);
 
-    // Process and Save
+    // 2. Process each
     newFiles.forEach(async (fileObj) => {
       try {
-        // Save to IndexedDB
-        await saveUpload({
-          id: fileObj.id,
-          name: fileObj.file.name,
-          size: fileObj.file.size,
-          type: fileObj.file.type,
-          file: fileObj.file, // IDB can store Blobs/Files
-          uploadedAt: fileObj.uploadedAt,
+        const text = await fileObj.file!.text();
+        let json;
+        try {
+          json = JSON.parse(text);
+        } catch (e) {
+          throw new Error("Invalid JSON");
+        }
+
+        // Save to DB
+        await saveDataset({
+          name: fileObj.name,
+          content: json
         });
 
-        // Simulate progress for UI feedback
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 20;
-          setFiles((currentFiles) =>
-            currentFiles.map((f) =>
-              f.id === fileObj.id
-                ? {
-                    ...f,
-                    progress: Math.min(progress, 100),
-                    status: progress >= 100 ? "completed" : "uploading",
-                  }
-                : f
-            )
-          );
+        toast.success(`${fileObj.name} saved securely.`);
+        
+        // Remove the "uploading" entry and refresh from DB to get the real one
+        setFiles(prev => prev.filter(f => f.id !== fileObj.id));
+        refreshList();
 
-          if (progress >= 100) {
-            clearInterval(interval);
-            toast.success(`${fileObj.file.name} saved locally`);
-          }
-        }, 100);
       } catch (error) {
-        console.error("Save failed:", error);
-        toast.error(`Failed to save ${fileObj.file.name}`);
-        setFiles((current) =>
-          current.map((f) =>
-            f.id === fileObj.id ? { ...f, status: "error" } : f
-          )
-        );
+        console.error(error);
+        toast.error(`Failed to upload ${fileObj.name}`);
+        setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, status: 'error' } : f));
       }
     });
   }, []);
@@ -105,26 +99,36 @@ export const DataUpload = () => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "text/csv": [".csv"],
       "application/json": [".json"],
-      "application/pdf": [".pdf"],
+      // "text/csv": [".csv"], // Parser needed for CSV
     },
-    maxSize: 50 * 1024 * 1024, // 50MB
-    onDropRejected: (fileRejections) => {
-      fileRejections.forEach((rejection) => {
-        const errorMsg = rejection.errors[0]?.message || "File rejected";
-        toast.error(`${rejection.file.name}: ${errorMsg}`);
-      });
-    },
+    maxSize: 50 * 1024 * 1024,
   });
 
-  const removeFile = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteDataset(id);
+      toast.success("Dataset deleted");
+      refreshList();
+    } catch (e) {
+      toast.error("Failed to delete");
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 p-4 lg:p-8">
-      {/* Dropzone Area */}
+      <div className="flex items-center justify-between">
+        <div>
+           <h2 className="text-2xl font-bold tracking-tight">Data Upload</h2>
+           <p className="text-muted-foreground">Import sensor data for analysis. stored locally.</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-accent/50 px-3 py-1 rounded-full">
+            <Database className="h-3 w-3" />
+            IndexedDB Storage
+        </div>
+      </div>
+
+      {/* Dropzone */}
       <div
         {...getRootProps()}
         className={cn(
@@ -142,58 +146,58 @@ export const DataUpload = () => {
           {isDragActive ? "Drop files here" : "Drag & drop datasets"}
         </h3>
         <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
-          Support for CSV, JSON, and PDF sensor logs. Maximum file size 50MB.
+          Support for JSON sensor logs. Maximum file size 50MB.
         </p>
         <Button className={COMPONENT_STYLES.button.primary}>
           Select Files
         </Button>
       </div>
 
-      {/* Upload List */}
-      {files.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-bold text-foreground">Upload Queue</h3>
-          <div className="bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
-            {files.map((file) => (
-              <div key={file.id} className="p-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-lg bg-accent flex items-center justify-center shrink-0">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between mb-1">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {file.file.name}
-                    </p>
-                    <span className="text-xs text-muted-foreground">
-                      {file.progress}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary transition-all duration-300"
-                      style={{ width: `${file.progress}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="shrink-0">
-                  {file.status === "completed" ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                  ) : (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile(file.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
-                    </button>
-                  )}
+      {/* List */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
+          Stored Datasets
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        </h3>
+        
+        {!isLoading && files.length === 0 && (
+            <p className="text-muted-foreground text-sm italic">No datasets uploaded yet.</p>
+        )}
+
+        <div className="bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
+          {files.map((file) => (
+            <div key={file.id} className="p-4 flex items-center gap-4">
+              <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center shrink-0", 
+                 file.status === 'error' ? "bg-destructive/10" : "bg-emerald-500/10")}>
+                {file.status === 'uploading' ? (
+                    <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                ) : (
+                    <FileText className={cn("h-5 w-5", file.status === 'error' ? "text-destructive" : "text-emerald-600")} />
+                )}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {file.name}
+                </p>
+                <div className="flex gap-2 text-xs text-muted-foreground">
+                    <span>{file.status === 'uploading' ? 'Uploading...' : file.status === 'error' ? 'Failed' : 'Ready'}</span>
+                    {file.size && <span>• {(file.size / 1024).toFixed(1)} KB</span>}
+                    {file.createdAt && <span>• {new Date(file.createdAt).toLocaleDateString()}</span>}
                 </div>
               </div>
-            ))}
-          </div>
+
+              <div className="shrink-0">
+                {file.status === "completed" && typeof file.id === 'number' && (
+                   <Button variant="ghost" size="sm" onClick={() => handleDelete(file.id as number)} className="text-muted-foreground hover:text-destructive">
+                     <Trash2 className="h-4 w-4" />
+                   </Button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };

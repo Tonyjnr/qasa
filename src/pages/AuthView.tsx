@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/a11y/useValidAnchor: <explanation> */
 import { useState, useEffect } from "react";
 import {
@@ -120,22 +121,22 @@ export const AuthView = ({ onRoleSelect, onGetStarted }: AuthViewProps) => {
         </div>
         {/* Desktop Auth Buttons */}
         <div className="hidden md:flex items-center gap-3">
-          <button 
-            onClick={onGetStarted} 
+          <button
+            onClick={onGetStarted}
             className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium hover:bg-white/10 transition-all"
           >
             Sign In
           </button>
-          <button 
-            onClick={onGetStarted} 
+          <button
+            onClick={onGetStarted}
             className="rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-all"
           >
             Sign Up
           </button>
         </div>
         {/* Mobile Get Started Button */}
-        <button 
-          onClick={onGetStarted} 
+        <button
+          onClick={onGetStarted}
           className="md:hidden rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-all"
         >
           Get Started

@@ -1,6 +1,8 @@
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import { UserProfile } from "@clerk/clerk-react";
 import { RoleToggle } from "../components/profile/RoleToggle";
 import { AlertSettings } from "../components/professional/alerts/AlertSettings";
+import { NotificationSettings } from "../components/professional/notifications/NotificationSettings";
 import { dark } from "@clerk/themes";
 import { useTheme } from "../contexts/ThemeProvider";
 
@@ -36,11 +38,11 @@ export const ProfileView = () => {
         <div className="space-y-6">
           <RoleToggle />
 
-          {/* New Alert Settings */}
-          <AlertSettings />
+          {/* Notification Preferences */}
+          <NotificationSettings />
 
-          {/* Future: Notification Preferences, Location Management */}
-          {/* Add more custom settings components here if needed */}
+          {/* Alert Thresholds */}
+          <AlertSettings />
         </div>
       </div>
     </div>
