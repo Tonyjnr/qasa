@@ -1,4 +1,78 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
+/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+import { useState, useEffect } from "react";
+import { UserButton } from "@clerk/clerk-react";
+import { dark } from "@clerk/themes";
+import {
+  FileText,
+  Calculator,
+  UploadCloud,
+  LayoutDashboard,
+  Search,
+  Menu,
+  Bell,
+  AlertTriangle,
+  Cloud,
+  LineChart,
+  ListOrdered,
+  MapPin,
+} from "lucide-react";
+import { useAirQuality } from "../../hooks/useAirQuality";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { searchLocation } from "../../services/api";
+import { toast, Toaster } from "sonner";
+import { apiService, type Dataset } from "../../services/apiService";
+
+// Component Imports
+import { CigaretteWidget } from "../../components/dashboard/CigaretteWidget";
+import { ExerciseAdvisor } from "../../components/dashboard/ExerciseAdvisor";
+import { PollutantGrid } from "../../components/dashboard/PollutantGrid";
+import { ForecastList } from "../../components/dashboard/ForecastList";
+import { Sidebar } from "../../components/layout/Sidebar";
+import { AIAssistant } from "../../components/ai/AIAssistant";
+import { cn } from "../../lib/utils";
+import { ThemeToggle } from "../../components/ui/theme-toggle";
+
+import { InteractiveMapProfessional } from "../../components/professional/interactive-map/InteractiveMapProfessional";
+import { WeatherOverview } from "../../components/professional/weather-overview/WeatherOverview";
+import { HistoricalChartsView } from "../../components/professional/historical-charts/HistoricalChartsView";
+import { CityRankingTable } from "../../components/professional/city-ranking/CityRankingTable";
+
+import { ResearchOverview } from "./ResearchOverview";
+import { RiskCalculator } from "./RiskCalculator";
+import { DataUpload } from "./DataUpload";
+import { Reports } from "./Reports";
+
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "../../components/ui/resizable";
+import { ScrollArea } from "../../components/ui/scroll-area";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
+  Command,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+} from "../../components/ui/command";
 import { SearchBar } from "../../components/ui/search-bar";
+
+interface SearchResult {
+  lat: number;
+  lng: number;
+  displayName: string;
+}
 
 export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
@@ -9,7 +83,7 @@ export default function ProfessionalDashboard() {
   const [activeTab, setActiveTab] = useState<string>(
     () => localStorage.getItem("professionalActiveTab") || "dashboard"
   );
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -19,22 +93,20 @@ export default function ProfessionalDashboard() {
     if (!query.trim()) {
       setShowSearchResults(false);
       setSearchResults([]);
+      setSelectedIndex(-1);
       return;
     }
 
     try {
       const results = await searchLocation(query);
       setSearchResults(results);
+      setSelectedIndex(-1);
       setShowSearchResults(true);
     } catch (error) {
       console.error(error);
       // Silent fail
     }
   };
-
-  useEffect(() => {
-    setSelectedIndex(-1);
-  }, [searchResults]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showSearchResults || searchResults.length === 0) return;
@@ -100,7 +172,11 @@ export default function ProfessionalDashboard() {
   if (isLoading && !data) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+        {/* Placeholder Loading State */}
+        <div className="flex flex-col items-center gap-4">
+           <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+           <p className="text-muted-foreground animate-pulse">Initializing Dashboard...</p>
+        </div>
       </div>
     );
   }
