@@ -75,7 +75,7 @@ export const Dashboard = () => {
   };
 
   const handleLocationSelect = (lat: number, lng: number, name: string) => {
-    setLocation(lat, lng);
+    setLocation(lat, lng, name);
     setShowSearchResults(false);
     setSearchQuery("");
     toast.success(`Location changed to ${name}`);

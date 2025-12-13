@@ -187,6 +187,7 @@
 
 .cl-logoBadge,
 div[class*="cl-footer"],
+div[class*="cl-footer-action"],
 div[class*="cl-branding"],
 a[class*="cl-footer"],
 a[href*="clerk.com"] {
