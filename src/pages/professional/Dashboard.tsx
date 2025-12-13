@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
@@ -25,6 +24,7 @@ import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { searchLocation } from "../../services/api";
 import { toast, Toaster } from "sonner";
 import { apiService, type Dataset } from "../../services/apiService";
+import { listDatasets } from "../../lib/uploadStore";
 
 // Component Imports
 import { CigaretteWidget } from "../../components/dashboard/CigaretteWidget";
@@ -74,6 +74,22 @@ interface SearchResult {
   lng: number;
   displayName: string;
 }
+
+// Helper to calculate size of local content
+const calculateSize = (content: any): number => {
+  if (typeof content === "string") return content.length;
+  if (content instanceof Blob) return content.size;
+  return JSON.stringify(content).length;
+};
+
+// Helper to infer type from filename
+const inferType = (name: string): string => {
+  const ext = name.split(".").pop()?.toLowerCase();
+  if (["csv", "json", "pdf", "png", "jpg", "jpeg"].includes(ext || "")) {
+    return ext === "jpg" ? "jpeg" : ext!;
+  }
+  return "other";
+};
 
 export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
@@ -139,10 +155,34 @@ export default function ProfessionalDashboard() {
     if (activeTab === "overview") {
       const loadDatasets = async () => {
         try {
-          const res = await apiService.getDatasets();
-          setDatasets(res);
+          // 1. Fetch Remote Datasets
+          let remoteDatasets: Dataset[] = [];
+          try {
+            remoteDatasets = await apiService.getDatasets();
+          } catch (err) {
+            console.warn("Failed to fetch remote datasets, using local only", err);
+          }
+
+          // 2. Fetch Local Datasets
+          const localUploads = await listDatasets();
+          const localDatasets: Dataset[] = localUploads.map((ds) => ({
+            id: `local-${ds.id}`,
+            name: ds.name,
+            size: "Local", // Fallback display string
+            sizeBytes: calculateSize(ds.content),
+            uploader: "Me (Local)",
+            uploadedAt: ds.createdAt,
+            type: inferType(ds.name),
+            status: "ready",
+          }));
+
+          // 3. Merge
+          setDatasets([...remoteDatasets, ...localDatasets].sort((a, b) => 
+            new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
+          ));
         } catch (err) {
-          console.error("Failed to fetch datasets", err);
+          console.error("Failed to load datasets", err);
+          toast.error("Failed to load datasets");
         }
       };
       loadDatasets();
@@ -175,10 +215,8 @@ export default function ProfessionalDashboard() {
       <div className="flex h-screen w-full items-center justify-center bg-background">
         {/* Placeholder Loading State */}
         <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <p className="text-muted-foreground animate-pulse">
-            Initializing Dashboard...
-          </p>
+           <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+           <p className="text-muted-foreground animate-pulse">Initializing Dashboard...</p>
         </div>
       </div>
     );

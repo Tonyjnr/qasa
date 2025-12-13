@@ -33,7 +33,16 @@ interface UploadedFileState {
   size?: number;
   status: "uploading" | "completed" | "error";
   createdAt?: string;
+  type?: string;
 }
+
+const toBase64 = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 
 export const DataUpload = () => {
   const [files, setFiles] = useState<UploadedFileState[]>([]);
@@ -42,16 +51,23 @@ export const DataUpload = () => {
   const refreshList = async () => {
     try {
       const savedDatasets = await listDatasets();
-      const mapped = savedDatasets.map((ds) => ({
-        id: ds.id!, // DB id
-        name: ds.name,
-        status: "completed" as const,
-        createdAt: ds.createdAt,
-        size: JSON.stringify(ds.content).length, // Approximate size
-      }));
-      // Merge with currently uploading files? No, just replace completed ones.
-      // Actually, simplest is to just show DB state + active uploads separate if needed.
-      // But for simplicity, let's just use the DB state as the source of truth for "Completed".
+      const mapped = savedDatasets.map((ds) => {
+        // Calculate size roughly
+        let size = 0;
+        if (typeof ds.content === "string") {
+          size = ds.content.length;
+        } else {
+          size = JSON.stringify(ds.content).length;
+        }
+
+        return {
+          id: ds.id!, // DB id
+          name: ds.name,
+          status: "completed" as const,
+          createdAt: ds.createdAt,
+          size: size,
+        };
+      });
       setFiles((prev) => {
         const uploading = prev.filter((f) => f.status === "uploading");
         return [...uploading, ...mapped];
@@ -77,6 +93,7 @@ export const DataUpload = () => {
       name: file.name,
       size: file.size,
       status: "uploading" as const,
+      type: file.type,
     }));
 
     setFiles((prev) => [...newFiles, ...prev]);
@@ -84,18 +101,30 @@ export const DataUpload = () => {
     // 2. Process each
     newFiles.forEach(async (fileObj) => {
       try {
-        const text = await fileObj.file!.text();
-        let json;
-        try {
-          json = JSON.parse(text);
-        } catch (e) {
-          throw new Error("Invalid JSON");
+        let content: any;
+
+        if (fileObj.file!.type === "application/json" || fileObj.name.endsWith(".json")) {
+          const text = await fileObj.file!.text();
+          try {
+            content = JSON.parse(text);
+          } catch (e) {
+            throw new Error("Invalid JSON");
+          }
+        } else if (
+          fileObj.file!.type === "text/csv" ||
+          fileObj.file!.type === "application/vnd.ms-excel" ||
+          fileObj.name.endsWith(".csv")
+        ) {
+          content = await fileObj.file!.text();
+        } else {
+          // Fallback for PDF or images: Store as Base64
+          content = await toBase64(fileObj.file!);
         }
 
         // Save to DB
         await saveDataset({
           name: fileObj.name,
-          content: json,
+          content: content,
         });
 
         toast.success(`${fileObj.name} saved securely.`);
@@ -117,7 +146,11 @@ export const DataUpload = () => {
     onDrop,
     accept: {
       "application/json": [".json"],
-      // "text/csv": [".csv"], // Parser needed for CSV
+      "text/csv": [".csv"],
+      "application/vnd.ms-excel": [".csv"], // Common MIME type for CSV on Windows
+      "application/pdf": [".pdf"],
+      "image/png": [".png"],
+      "image/jpeg": [".jpg", ".jpeg"],
     },
     maxSize: 50 * 1024 * 1024,
   });
@@ -138,7 +171,7 @@ export const DataUpload = () => {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Data Upload</h2>
           <p className="text-muted-foreground">
-            Import sensor data for analysis. stored locally.
+            Import sensor data, reports, or logs for analysis. Stored locally.
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-accent/50 px-3 py-1 rounded-full">
@@ -206,10 +239,10 @@ export const DataUpload = () => {
           <UploadCloud className="h-10 w-10" />
         </div>
         <h3 className="text-xl font-bold text-foreground mb-2">
-          {isDragActive ? "Drop files here" : "Drag & drop datasets"}
+          {isDragActive ? "Drop files here" : "Drag & drop files"}
         </h3>
         <p className="text-sm text-muted-foreground text-center max-w-sm mb-6">
-          Support for JSON sensor logs. Maximum file size 50MB.
+          Support for JSON, CSV, PDF, PNG, JPG. Max 50MB.
         </p>
         <Button className={COMPONENT_STYLES.button.primary}>
           Select Files
@@ -219,13 +252,13 @@ export const DataUpload = () => {
       {/* Updated File List with Actions */}
       <div className="space-y-4">
         <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-          Stored Datasets
+          Stored Files
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
         </h3>
 
         {!isLoading && files.length === 0 && (
           <p className="text-muted-foreground text-sm italic">
-            No datasets uploaded yet.
+            No files uploaded yet.
           </p>
         )}
 
@@ -248,17 +281,24 @@ export const DataUpload = () => {
                   <span>
                     {file.createdAt
                       ? new Date(file.createdAt).toLocaleDateString()
-                      : "Unknown"}
+                      : "Uploading..."}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <span
                   className={cn(
-                    "px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500"
+                    "px-2.5 py-0.5 rounded-full text-xs font-medium",
+                    file.status === "error"
+                      ? "bg-red-500/10 text-red-500"
+                      : "bg-emerald-500/10 text-emerald-500"
                   )}
                 >
-                  Active
+                  {file.status === "uploading"
+                    ? "Uploading..."
+                    : file.status === "error"
+                    ? "Error"
+                    : "Saved"}
                 </span>
                 {typeof file.id === "number" && (
                   <Button
