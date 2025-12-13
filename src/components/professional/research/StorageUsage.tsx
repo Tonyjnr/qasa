@@ -16,13 +16,6 @@ import {
   CardTitle,
 } from "../../../components/ui/card";
 
-const data = [
-  { name: "Sensor Logs (JSON)", value: 400, color: "#10b981" }, // emerald-500
-  { name: "Images", value: 300, color: "#3b82f6" }, // blue-500
-  { name: "Reports (PDF)", value: 300, color: "#f59e0b" }, // amber-500
-  { name: "System", value: 200, color: "#64748b" }, // slate-500
-];
-
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({
   cx,
@@ -36,6 +29,9 @@ const renderCustomizedLabel = ({
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  // Only render label if slice is big enough
+  if (percent < 0.05) return null;
+
   return (
     <text
       x={x}
@@ -43,43 +39,71 @@ const renderCustomizedLabel = ({
       fill="white"
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
+      className="text-xs font-bold"
     >
       {`${(percent * 100).toFixed(0)}%`}
     </text>
   );
 };
 
-export const StorageUsage = () => {
+// Helper to format bytes
+const formatBytes = (bytes: number, decimals = 2) => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+};
+
+export interface StorageMetrics {
+  totalUsedBytes: number;
+  totalLimitBytes: number;
+  breakdown: { name: string; value: number; color: string }[];
+}
+
+export const StorageUsage = ({ metrics }: { metrics?: StorageMetrics }) => {
+  // Fallback / Skeleton data if loading or empty
+  const displayData =
+    metrics && metrics.breakdown.length > 0
+      ? metrics.breakdown
+      : [{ name: "Empty", value: 1, color: "#e2e8f0" }];
+
+  const totalUsed = metrics ? metrics.totalUsedBytes : 0;
+  const totalLimit = metrics ? metrics.totalLimitBytes : 5368709120; // 5GB default
+
   return (
-    <Card className="bg-card border-border rounded-2xl shadow-sm">
+    <Card className="bg-card border-border rounded-2xl shadow-sm h-full flex flex-col">
       <CardHeader>
         <CardTitle className="text-base text-foreground">
           Storage Distribution
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px] w-full">
+      <CardContent className="flex-1 min-h-[300px]">
+        <div className="h-[250px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={displayData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={renderCustomizedLabel}
+                label={metrics?.breakdown.length ? renderCustomizedLabel : undefined}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {data.map((entry, index) => (
+                {displayData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip
+                formatter={(value: number) => formatBytes(value)}
                 contentStyle={{
                   backgroundColor: "var(--card)",
                   borderColor: "var(--border)",
                   borderRadius: "8px",
+                  color: "var(--foreground)",
                 }}
                 itemStyle={{ color: "var(--foreground)" }}
               />
@@ -87,8 +111,16 @@ export const StorageUsage = () => {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-4 text-center text-sm text-muted-foreground">
-          Total: 1.2 GB / 5.0 GB used
+        <div className="mt-4 text-center">
+          <p className="text-sm font-medium text-foreground">
+            {formatBytes(totalUsed)} used of {formatBytes(totalLimit)}
+          </p>
+          <div className="w-full bg-secondary h-2 rounded-full mt-2 overflow-hidden">
+            <div 
+              className="bg-primary h-full transition-all duration-500" 
+              style={{ width: `${Math.min((totalUsed / totalLimit) * 100, 100)}%` }}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

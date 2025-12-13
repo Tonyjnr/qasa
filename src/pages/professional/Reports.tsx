@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/purity */
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, addDays, subDays } from "date-fns";
 import {
   FileText,
   Download,
@@ -26,6 +26,8 @@ import {
 import type { DateRange } from "react-day-picker";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { TrendChart } from "../../components/professional/reports/TrendChart";
 
 const ALL_POLLUTANTS = [
   { value: "pm25", label: "PM2.5" },
@@ -37,6 +39,7 @@ const ALL_POLLUTANTS = [
 ];
 
 export const Reports = () => {
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: undefined,
     to: undefined,
@@ -47,9 +50,10 @@ export const Reports = () => {
   const [selectedLocationName, setSelectedLocationName] = useState<
     string | null
   >(null);
-  const [selectedPollutants, setSelectedPollutants] = useState<string[]>([]);
+  const [selectedPollutants, setSelectedPollutants] = useState<string[]>([])
   const [reportGenerated, setReportGenerated] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [reportData, setReportData] = useState<any[]>([]);
 
   const handlePollutantChange = (pollutantValue: string, checked: boolean) => {
     setSelectedPollutants((prev) =>
@@ -59,45 +63,65 @@ export const Reports = () => {
     );
   };
 
+  const generateMockData = (from?: Date, to?: Date) => {
+    const startDate = from || new Date();
+    const endDate = to || startDate;
+    const data = [];
+    const days = Math.floor(
+      (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)
+    );
+
+    if (days <= 1) {
+      // Hourly data for 1-2 days
+      for (let i = 0; i < 24; i++) {
+        const date = new Date(startDate);
+        date.setHours(i);
+        const point: any = { date: date.toISOString() };
+        selectedPollutants.forEach((p) => {
+          point[p] = Math.floor(Math.random() * 50) + 10;
+        });
+        data.push(point);
+      }
+    } else {
+      // Daily data
+      for (let i = 0; i <= days; i++) {
+        const date = addDays(startDate, i);
+        const point: any = { date: date.toISOString() };
+        selectedPollutants.forEach((p) => {
+          point[p] = Math.floor(Math.random() * 80) + 20;
+        });
+        data.push(point);
+      }
+    }
+    return data;
+  };
+
   const handleGenerateReport = async () => {
     setIsGenerating(true);
     setReportGenerated(false);
-    // Simulate API call or report generation process
+    
+    // Simulate generation delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
+    
+    const data = generateMockData(dateRange?.from, dateRange?.to);
+    setReportData(data);
     setReportGenerated(true);
     setIsGenerating(false);
   };
 
   const downloadCSV = () => {
-    if (!selectedLocationName) return;
+    if (!selectedLocationName || reportData.length === 0) return;
 
-    // Mock data
-    const data = [
-      {
-        date: format(new Date(), "yyyy-MM-dd"),
-        location: selectedLocationName,
-        pm25: 12,
-        pm10: 20,
-        aqi: 45,
-      },
-      {
-        date: format(new Date(Date.now() - 86400000), "yyyy-MM-dd"),
-        location: selectedLocationName,
-        pm25: 15,
-        pm10: 25,
-        aqi: 52,
-      },
-      {
-        date: format(new Date(Date.now() - 172800000), "yyyy-MM-dd"),
-        location: selectedLocationName,
-        pm25: 10,
-        pm10: 18,
-        aqi: 40,
-      },
-    ];
-
-    const headers = Object.keys(data[0]).join(",");
-    const rows = data.map((obj) => Object.values(obj).join(",")).join("\n");
+    const headers = ["Date", ...selectedPollutants].join(",");
+    const rows = reportData
+      .map((row) => {
+        const values = [
+          format(new Date(row.date), "yyyy-MM-dd HH:mm"),
+          ...selectedPollutants.map((p) => row[p]),
+        ];
+        return values.join(",");
+      })
+      .join("\n");
     const csvContent = `data:text/csv;charset=utf-8,${headers}\n${rows}`;
 
     const encodedUri = encodeURI(csvContent);
@@ -116,7 +140,7 @@ export const Reports = () => {
   };
 
   const downloadPDF = () => {
-    if (!selectedLocationName) return;
+    if (!selectedLocationName || reportData.length === 0) return;
 
     const doc = new jsPDF();
 
@@ -128,31 +152,15 @@ export const Reports = () => {
     doc.text(`Location: ${selectedLocationName}`, 14, 30);
     doc.text(`Generated: ${format(new Date(), "PPP")}`, 14, 36);
 
+    const tableHead = [["Date", ...selectedPollutants.map((p) => p.toUpperCase())]];
+    const tableBody = reportData.slice(0, 30).map((row) => [
+      format(new Date(row.date), "yyyy-MM-dd"),
+      ...selectedPollutants.map((p) => String(row[p])),
+    ]);
+
     autoTable(doc, {
-      head: [["Date", "Location", "PM2.5", "PM10", "AQI"]],
-      body: [
-        [
-          format(new Date(), "yyyy-MM-dd"),
-          selectedLocationName,
-          "12",
-          "20",
-          "45",
-        ],
-        [
-          format(new Date(Date.now() - 86400000), "yyyy-MM-dd"),
-          selectedLocationName,
-          "15",
-          "25",
-          "52",
-        ],
-        [
-          format(new Date(Date.now() - 172800000), "yyyy-MM-dd"),
-          selectedLocationName,
-          "10",
-          "18",
-          "40",
-        ],
-      ],
+      head: tableHead,
+      body: tableBody,
       startY: 44,
       theme: "grid",
       headStyles: { fillColor: [16, 185, 129] }, // emerald-500
@@ -186,15 +194,18 @@ export const Reports = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Date Range Picker - Spans 1 column on large screens */}
+            {/* Date Range Picker */}
             <div className="space-y-3 flex flex-col">
               <Label className="text-sm font-medium text-foreground flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" /> Date
                 Range
               </Label>
-              <div className="flex-1 w-full">
-                <DateRangePicker date={dateRange} setDate={setDateRange} />
-              </div>
+              <DateRangePicker 
+                date={dateRange} 
+                setDate={setDateRange} 
+                className="w-full"
+                compact={!isDesktop} 
+              />
             </div>
 
             {/* Location Selector */}
@@ -360,16 +371,7 @@ export const Reports = () => {
               <CardTitle>Trend Analysis</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px] w-full bg-accent/10 rounded-lg flex items-center justify-center border border-dashed border-border text-muted-foreground">
-                <div className="text-center">
-                  <BarChart3 className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                  <p>[Interactive Chart Visualization Placeholder]</p>
-                  <p className="text-xs max-w-sm mx-auto mt-2">
-                    Visualizing {selectedPollutants.join(", ")} levels over the
-                    selected {dateRange?.to ? "period" : "day"}.
-                  </p>
-                </div>
-              </div>
+              <TrendChart data={reportData} pollutants={selectedPollutants} />
             </CardContent>
           </Card>
 

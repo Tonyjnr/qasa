@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
@@ -174,8 +175,10 @@ export default function ProfessionalDashboard() {
       <div className="flex h-screen w-full items-center justify-center bg-background">
         {/* Placeholder Loading State */}
         <div className="flex flex-col items-center gap-4">
-           <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-           <p className="text-muted-foreground animate-pulse">Initializing Dashboard...</p>
+          <div className="h-12 w-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <p className="text-muted-foreground animate-pulse">
+            Initializing Dashboard...
+          </p>
         </div>
       </div>
     );
