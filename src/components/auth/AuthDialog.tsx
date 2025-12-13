@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
+/** biome-ignore-all assist/source/organizeImports: <explanation> */
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
@@ -79,14 +80,19 @@ export function AuthDialog({
               </div>
 
               {mode === "login" ? (
-                <SignIn appearance={commonAppearance} fallbackRedirectUrl="/" />
-              ) : (
-                <SignUp
+                <SignIn
                   appearance={commonAppearance}
+                  routing="hash"
                   fallbackRedirectUrl="/"
                   unsafeMetadata={{
                     role: defaultRole,
                   }}
+                />
+              ) : (
+                <SignUp
+                  appearance={commonAppearance}
+                  routing="hash"
+                  fallbackRedirectUrl="/"
                 />
               )}
 
