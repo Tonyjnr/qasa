@@ -241,7 +241,7 @@ export const Dashboard = () => {
           <InteractiveMap
             data={data}
             onLocationChange={(lat, lng) => {
-              setLocation(lat, lng);
+              setLocation(lat, lng, "Selected Location");
               toast.info("Fetching AQI for new location...");
             }}
           />
