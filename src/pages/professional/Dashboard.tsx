@@ -1,71 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/** biome-ignore-all assist/source/organizeImports: <explanation> */
-/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
-/** biome-ignore-all lint/a11y/useButtonType: <explanation> */
-import { useState, useEffect } from "react";
-import { UserButton } from "@clerk/clerk-react";
-import { dark } from "@clerk/themes";
-import {
-  FileText,
-  Calculator,
-  UploadCloud,
-  LayoutDashboard,
-  Search,
-  Menu,
-  Bell,
-  AlertTriangle,
-  Cloud,
-  LineChart,
-  ListOrdered,
-  MapPin,
-} from "lucide-react";
-import { useAirQuality } from "../../hooks/useAirQuality";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { searchLocation } from "../../services/api";
-import { toast, Toaster } from "sonner";
-import { apiService, type Dataset } from "../../services/apiService";
-
-// Component Imports
-import { CigaretteWidget } from "../../components/dashboard/CigaretteWidget";
-import { ExerciseAdvisor } from "../../components/dashboard/ExerciseAdvisor";
-import { PollutantGrid } from "../../components/dashboard/PollutantGrid";
-import { ForecastList } from "../../components/dashboard/ForecastList";
-import { Sidebar } from "../../components/layout/Sidebar";
-import { AIAssistant } from "../../components/ai/AIAssistant";
-import { cn } from "../../lib/utils";
-import { ThemeToggle } from "../../components/ui/theme-toggle";
-
-import { InteractiveMapProfessional } from "../../components/professional/interactive-map/InteractiveMapProfessional";
-import { WeatherOverview } from "../../components/professional/weather-overview/WeatherOverview";
-import { HistoricalChartsView } from "../../components/professional/historical-charts/HistoricalChartsView";
-import { CityRankingTable } from "../../components/professional/city-ranking/CityRankingTable";
-
-import { ResearchOverview } from "./ResearchOverview";
-import { RiskCalculator } from "./RiskCalculator";
-import { DataUpload } from "./DataUpload";
-import { Reports } from "./Reports";
-
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "../../components/ui/resizable";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import {
-  Command,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from "../../components/ui/command";
+import { SearchBar } from "../../components/ui/search-bar";
 
 export default function ProfessionalDashboard() {
   const { data, isLoading, error, setLocation, location } = useAirQuality({
@@ -76,37 +9,28 @@ export default function ProfessionalDashboard() {
   const [activeTab, setActiveTab] = useState<string>(
     () => localStorage.getItem("professionalActiveTab") || "dashboard"
   );
-  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  // Debounced Search
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      // Only search if 3 or more characters
-      if (searchQuery.trim().length >= 3) {
-        try {
-          setIsSearching(true);
-          const results = await searchLocation(searchQuery);
-          setSearchResults(results);
-          setShowSearchResults(true);
-        } catch (error) {
-          console.error(error);
-          // Silent fail for auto-search to avoid spam
-        } finally {
-          setIsSearching(false);
-        }
-      } else {
-        setSearchResults([]);
-        setShowSearchResults(false);
-      }
-    }, 300);
+  // Search Handler
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setShowSearchResults(false);
+      setSearchResults([]);
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    try {
+      const results = await searchLocation(query);
+      setSearchResults(results);
+      setShowSearchResults(true);
+    } catch (error) {
+      console.error(error);
+      // Silent fail
+    }
+  };
 
   useEffect(() => {
     setSelectedIndex(-1);
@@ -155,7 +79,6 @@ export default function ProfessionalDashboard() {
   const handleLocationSelect = (lat: number, lng: number, name: string) => {
     setLocation(lat, lng, name);
     setShowSearchResults(false);
-    setSearchQuery("");
     toast.success(`Location changed to ${name}`);
   };
 
@@ -311,17 +234,13 @@ export default function ProfessionalDashboard() {
           <main className="p-4 pb-24 bg-background">
             {/* Mobile Search */}
             <div className="mb-6 relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+              <SearchBar
+                onSearch={handleSearch}
                 onKeyDown={handleKeyDown}
                 onBlur={() =>
                   setTimeout(() => setShowSearchResults(false), 200)
                 }
-                className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                placeholder="Search..."
               />
               <div
                 className={cn(
@@ -444,17 +363,13 @@ export default function ProfessionalDashboard() {
 
               <div className="flex items-center gap-4">
                 <div className="relative w-80">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Search city..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                  <SearchBar
+                    onSearch={handleSearch}
                     onKeyDown={handleKeyDown}
                     onBlur={() =>
                       setTimeout(() => setShowSearchResults(false), 200)
                     }
-                    className="w-full rounded-full border border-input bg-background py-2 pl-10 pr-4 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Search city..."
                   />
                   <div
                     className={cn(

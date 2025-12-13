@@ -1,51 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /** biome-ignore-all lint/a11y/useButtonType: <explanation> */
 /** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
-import { Search, Bell, AlertTriangle } from "lucide-react";
 import { useAirQuality } from "../../hooks/useAirQuality";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { UserButton } from "@clerk/clerk-react";
-import { PollutantGrid } from "../../components/dashboard/PollutantGrid";
-import { ForecastList } from "../../components/dashboard/ForecastList";
-import { Sidebar } from "../../components/layout/Sidebar";
-import { CigaretteWidget } from "../../components/dashboard/CigaretteWidget";
-import { ExerciseAdvisor } from "../../components/dashboard/ExerciseAdvisor";
-import { useState } from "react";
-import { searchLocation } from "../../services/api";
-import { Toaster, toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-  DialogTitle,
-  DialogDescription,
-} from "../../components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
-import { ThemeToggle } from "../../components/ui/theme-toggle";
-import { AIAssistant } from "../../components/ai/AIAssistant";
-import { InteractiveMap } from "../../components/dashboard/InteractiveMap";
-import { ListView } from "../../components/dashboard/ListView";
-import { dark } from "@clerk/themes";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "../../components/ui/resizable";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import {
-  Command,
-  CommandList,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-} from "../../components/ui/command";
+import { SearchBar } from "../../components/ui/search-bar";
 
 export const Dashboard = () => {
   const { data, isLoading, error, refresh, setLocation } = useAirQuality({
@@ -53,31 +10,29 @@ export const Dashboard = () => {
   });
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  const [, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setShowSearchResults(false);
+      setSearchResults([]);
+      return;
+    }
 
-    setIsSearching(true);
     try {
-      const results = await searchLocation(searchQuery);
+      const results = await searchLocation(query);
       setSearchResults(results);
       setShowSearchResults(true);
     } catch (error) {
       console.error(error);
       toast.error("Failed to search location");
-    } finally {
-      setIsSearching(false);
     }
   };
 
   const handleLocationSelect = (lat: number, lng: number, name: string) => {
     setLocation(lat, lng, name);
     setShowSearchResults(false);
-    setSearchQuery("");
     toast.success(`Location changed to ${name}`);
   };
 
@@ -298,25 +253,11 @@ export const Dashboard = () => {
           <HeaderContent />
           {/* Search moved below header title on mobile */}
           <div className="mt-4 relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
+            <SearchBar
+              onSearch={handleSearch}
               placeholder="Search city..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSearchResults(e.target.value.length > 0);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch();
-                } else if (e.key === "Escape") {
-                  setShowSearchResults(false);
-                }
-              }}
-              onFocus={() => setShowSearchResults(searchQuery.length > 0)}
-              onBlur={() => setTimeout(() => setShowSearchResults(false), 100)} // Delay to allow click on results
-              className="w-full rounded-full border border-input bg-background py-2 pl-9 pr-4 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              delay={300}
+              minLength={3}
             />
             {showSearchResults && searchResults.length > 0 && (
               <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">
@@ -369,27 +310,12 @@ export const Dashboard = () => {
             <div className="flex-1 flex justify-between items-center gap-8">
               <HeaderContent />
               <div className="relative w-96 hidden md:block">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
+                <SearchBar
+                  onSearch={handleSearch}
                   placeholder="Search city..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchResults(e.target.value.length > 0);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    } else if (e.key === "Escape") {
-                      setShowSearchResults(false);
-                    }
-                  }}
-                  onFocus={() => setShowSearchResults(searchQuery.length > 0)}
-                  onBlur={() =>
-                    setTimeout(() => setShowSearchResults(false), 100)
-                  } // Delay to allow click on results
-                  className="w-full rounded-full border-none bg-accent/20 py-2.5 pl-10 pr-4 shadow-sm ring-1 ring-border focus:ring-2 focus:ring-primary"
+                  delay={300}
+                  minLength={3}
+                  className="w-full"
                 />
                 {showSearchResults && searchResults.length > 0 && (
                   <Command className="absolute z-10 w-full mt-1 bg-popover border border-border rounded-md shadow-lg">

@@ -111,6 +111,9 @@ app.post("/api/chat", async (req, res) => {
   try {
     const { messages, mode, contextData } = req.body;
 
+    // Limit context to last 10 messages
+    const limitedMessages = messages.slice(-10);
+
     const systemContext = `
       Current Context Data: ${JSON.stringify(contextData || {})}
       
@@ -123,7 +126,7 @@ app.post("/api/chat", async (req, res) => {
 
     const result = streamText({
       model: openai("gpt-4o"),
-      messages,
+      messages: limitedMessages,
       system: systemContext,
       tools: {
         generateReport: tool({

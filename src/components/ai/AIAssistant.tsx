@@ -5,7 +5,7 @@
 /** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 /** biome-ignore-all lint/a11y/noSvgWithoutTitle: <explanation> */
 import { useState, useRef, useEffect } from "react";
-import { Bot, X, Sparkles, FileText, Send } from "lucide-react";
+import { Bot, X, Sparkles, FileText, Send, ThumbsUp, ThumbsDown } from "lucide-react";
 import { Button } from "../ui/button";
 import { cn } from "../../lib/utils";
 import { useChat } from "@ai-sdk/react";
@@ -19,9 +19,15 @@ interface AIAssistantProps {
 export function AIAssistant({ mode, contextData }: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [feedback, setFeedback] = useState<Record<string, "up" | "down">>(
+    {}
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { messages, sendMessage, status } = useChat({
+    // Limit context logic should ideally be server-side, 
+    // but we can pass a 'maxSteps' or handle it in the API.
+    // Here we ensure the UI shows the full history.
     messages: [
       {
         id: "welcome",
@@ -53,6 +59,12 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
     if (!input.trim()) return;
     sendMessage({ text: input }, { body: { mode, contextData } });
     setInput("");
+  };
+
+  const handleFeedback = (messageId: string, type: "up" | "down") => {
+    setFeedback((prev) => ({ ...prev, [messageId]: type }));
+    // In a real app, you would send this to your analytics backend
+    console.log(`Feedback for ${messageId}: ${type}`);
   };
 
   // Auto-scroll to bottom on new messages
@@ -159,8 +171,8 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
               <div
                 key={msg.id}
                 className={cn(
-                  "flex w-full",
-                  msg.role === "user" ? "justify-end" : "justify-start"
+                  "flex w-full flex-col",
+                  msg.role === "user" ? "items-end" : "items-start"
                 )}
               >
                 <div
@@ -202,6 +214,29 @@ export function AIAssistant({ mode, contextData }: AIAssistantProps) {
                     return null;
                   })}
                 </div>
+                {/* Feedback Buttons for Assistant Messages */}
+                {msg.role === "assistant" && msg.id !== "welcome" && (
+                  <div className="flex gap-1 mt-1 ml-2">
+                    <button
+                      onClick={() => handleFeedback(msg.id, "up")}
+                      className={cn(
+                        "p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
+                        feedback[msg.id] === "up" ? "text-green-500" : "text-slate-400"
+                      )}
+                    >
+                      <ThumbsUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => handleFeedback(msg.id, "down")}
+                      className={cn(
+                        "p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
+                        feedback[msg.id] === "down" ? "text-red-500" : "text-slate-400"
+                      )}
+                    >
+                      <ThumbsDown className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
             {isLoading && (
