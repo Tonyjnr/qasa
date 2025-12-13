@@ -3,6 +3,15 @@
 /** biome-ignore-all assist/source/organizeImports: <explanation> */
 /** biome-ignore-all lint/correctness/noUnusedFunctionParameters: <explanation> */
 import "dotenv/config";
+
+// Fallback for Clerk Publishable Key (often named with VITE_ prefix in monorepos/frontend-first apps)
+if (
+  !process.env.CLERK_PUBLISHABLE_KEY &&
+  process.env.VITE_CLERK_PUBLISHABLE_KEY
+) {
+  process.env.CLERK_PUBLISHABLE_KEY = process.env.VITE_CLERK_PUBLISHABLE_KEY;
+}
+
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
