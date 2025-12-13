@@ -17,6 +17,8 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
+  DialogTitle,
+  DialogDescription,
 } from "../../components/ui/dialog";
 import {
   DropdownMenu,
@@ -254,6 +256,12 @@ export const Dashboard = () => {
                 </button>
               </DialogTrigger>
               <DialogContent className="max-w-[90vw] lg:max-w-[68vw] h-[80vh] lg:h-[90vh] p-0 overflow-hidden bg-background border-border shadow-2xl rounded-3xl">
+                <DialogTitle className="sr-only">
+                  Detailed Data View
+                </DialogTitle>
+                <DialogDescription className="sr-only">
+                  A detailed list view of air quality metrics.
+                </DialogDescription>
                 <div className="h-full w-full overflow-hidden">
                   <ListView data={data} />
                 </div>

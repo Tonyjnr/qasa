@@ -58,6 +58,10 @@ export function AuthDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 transition-opacity" />
         <Dialog.Content className="fixed left-[50%] top-[50%] z-50 translate-x-[-50%] translate-y-[-50%] p-0 outline-none w-full max-w-[400px]">
+          <Dialog.Title className="sr-only">Authentication</Dialog.Title>
+          <Dialog.Description className="sr-only">
+            Sign in or create an account to access QASA
+          </Dialog.Description>
           <div className="relative overflow-hidden rounded-[3.5rem] shadow-2xl">
             <Dialog.Close className="absolute right-6 top-6 z-[60] rounded-full p-1 text-slate-400 hover:text-white transition-colors">
               <X className="h-5 w-5" />
@@ -77,13 +81,13 @@ export function AuthDialog({
               {mode === "login" ? (
                 <SignIn
                   appearance={commonAppearance}
-                  redirectUrl="/"
+                  fallbackRedirectUrl="/"
                   signUpUrl="#"
                 />
               ) : (
                 <SignUp
                   appearance={commonAppearance}
-                  afterSignUpUrl="/"
+                  fallbackRedirectUrl="/"
                   signInUrl="#"
                   unsafeMetadata={{
                     role: defaultRole,
