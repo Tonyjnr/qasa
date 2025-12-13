@@ -79,16 +79,11 @@ export function AuthDialog({
               </div>
 
               {mode === "login" ? (
-                <SignIn
-                  appearance={commonAppearance}
-                  fallbackRedirectUrl="/"
-                  signUpUrl="#"
-                />
+                <SignIn appearance={commonAppearance} fallbackRedirectUrl="/" />
               ) : (
                 <SignUp
                   appearance={commonAppearance}
                   fallbackRedirectUrl="/"
-                  signInUrl="#"
                   unsafeMetadata={{
                     role: defaultRole,
                   }}
