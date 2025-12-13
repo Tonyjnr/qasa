@@ -18,6 +18,7 @@
     "@ai-sdk/openai": "^2.0.85",
     "@ai-sdk/react": "^2.0.114",
     "@clerk/clerk-react": "^5.58.0",
+    "@clerk/express": "^1.7.57",
     "@clerk/themes": "^2.4.42",
     "@hookform/resolvers": "^5.2.2",
     "@neondatabase/serverless": "^1.0.2",

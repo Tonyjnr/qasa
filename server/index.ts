@@ -69,6 +69,11 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// --- AUTHENTICATION MIDDLEWARE ---
+import { clerkMiddleware, requireAuth } from "@clerk/express";
+
+app.use(clerkMiddleware());
+
 // --- AI GATEWAY CONFIGURATION ---
 const openai = createOpenAI({
   apiKey: process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY,
@@ -196,10 +201,13 @@ app.get("/api/monitoring-stations", async (req, res) => {
 });
 
 // GET /api/alerts
-app.get("/api/alerts", async (req, res) => {
+app.get("/api/alerts", requireAuth(), async (req, res) => {
   try {
-    // In a real app, filter by req.user.id
-    const alerts = await db.select().from(userAlerts);
+    const { userId } = req.auth;
+    const alerts = await db
+      .select()
+      .from(userAlerts)
+      .where(eq(userAlerts.userId, userId));
     res.json(alerts);
   } catch (error) {
     console.error("Failed to fetch alerts:", error);
@@ -208,8 +216,9 @@ app.get("/api/alerts", async (req, res) => {
 });
 
 // POST /api/alerts
-app.post("/api/alerts", async (req, res) => {
+app.post("/api/alerts", requireAuth(), async (req, res) => {
   try {
+    const { userId } = req.auth;
     const newAlert = req.body;
     // Basic validation
     if (!newAlert.type || !newAlert.threshold) {
@@ -220,7 +229,7 @@ app.post("/api/alerts", async (req, res) => {
       .insert(userAlerts)
       .values({
         ...newAlert,
-        userId: newAlert.userId || "demo-user-id", // Fallback for demo
+        userId: userId, // Use authenticated user ID
       })
       .returning();
 
@@ -232,10 +241,21 @@ app.post("/api/alerts", async (req, res) => {
 });
 
 // DELETE /api/alerts/:id
-app.delete("/api/alerts/:id", async (req, res) => {
+app.delete("/api/alerts/:id", requireAuth(), async (req, res) => {
   try {
+    const { userId } = req.auth;
     const { id } = req.params;
-    await db.delete(userAlerts).where(eq(userAlerts.id, id));
+
+    // Ensure user owns the alert before deleting
+    const deleted = await db
+      .delete(userAlerts)
+      .where(and(eq(userAlerts.id, id), eq(userAlerts.userId, userId)))
+      .returning();
+
+    if (deleted.length === 0) {
+      return res.status(404).json({ error: "Alert not found or unauthorized" });
+    }
+
     res.json({ success: true });
   } catch (error) {
     console.error("Failed to delete alert:", error);

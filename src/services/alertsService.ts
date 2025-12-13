@@ -1,5 +1,5 @@
-import axios, { type AxiosInstance, type AxiosError } from 'axios';
-import { handleError } from '../lib/errorHandler';
+import axios, { type AxiosError } from "axios";
+import { handleError } from "../lib/errorHandler";
 
 export interface Alert {
   id: string;
@@ -9,42 +9,50 @@ export interface Alert {
   operator: string;
   isActive: boolean;
   monitoringStationId?: string;
-  notificationMethod: 'email' | 'in_app';
+  notificationMethod: "email" | "in_app";
 }
 
-class AlertsService {
-  private api: AxiosInstance;
+const getApi = (token: string) => {
+  const api = axios.create({
+    baseURL: process.env.VITE_API_BASE_URL || "/api",
+    timeout: 10000,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-  constructor() {
-    this.api = axios.create({
-      baseURL: process.env.VITE_API_BASE_URL || '/api',
-      timeout: 10000,
-    });
+  api.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError) => Promise.reject(handleError(error))
+  );
 
-    this.api.interceptors.response.use(
-      (response) => response,
-      (error: AxiosError) => Promise.reject(handleError(error))
-    );
-  }
+  return api;
+};
 
-  async getAlerts(): Promise<Alert[]> {
-    const response = await this.api.get('/alerts');
+export const alertsService = {
+  getAlerts: async (token: string): Promise<Alert[]> => {
+    const response = await getApi(token).get("/alerts");
     return response.data;
-  }
+  },
 
-  async createAlert(alert: Omit<Alert, 'id'>): Promise<Alert> {
-    const response = await this.api.post('/alerts', alert);
+  createAlert: async (
+    token: string,
+    alert: Omit<Alert, "id">
+  ): Promise<Alert> => {
+    const response = await getApi(token).post("/alerts", alert);
     return response.data;
-  }
+  },
 
-  async deleteAlert(id: string): Promise<void> {
-    await this.api.delete(`/alerts/${id}`);
-  }
+  deleteAlert: async (token: string, id: string): Promise<void> => {
+    await getApi(token).delete(`/alerts/${id}`);
+  },
 
-  async updateAlert(id: string, updates: Partial<Alert>): Promise<Alert> {
-    const response = await this.api.put(`/alerts/${id}`, updates);
+  updateAlert: async (
+    token: string,
+    id: string,
+    updates: Partial<Alert>
+  ): Promise<Alert> => {
+    const response = await getApi(token).put(`/alerts/${id}`, updates);
     return response.data;
-  }
-}
-
-export const alertsService = new AlertsService();
+  },
+};
